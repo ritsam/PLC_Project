@@ -23,7 +23,21 @@ public class LexerTests {
                 Arguments.of("Alphabetic", "getName", true),
                 Arguments.of("Alphanumeric", "thelegend27", true),
                 Arguments.of("Leading Hyphen", "-five", false),
-                Arguments.of("Leading Digit", "1fish2fish3fishbluefish", false)
+                Arguments.of("Leading Digit", "1fish2fish3fishbluefish", false),
+                Arguments.of("Leading underscore", "_apple", false),
+                Arguments.of("@ leading", "@gmail", true),
+                Arguments.of("@ middle", "gm@il", false),
+                Arguments.of("@ only", "@", true),
+                Arguments.of("_ only", "_", false),
+                Arguments.of("middle hyphen", "ritika-lara", true),
+                Arguments.of("space", " ", false),
+                Arguments.of("empty", "", false),
+                Arguments.of("with underscore", "user_name", true),
+                Arguments.of("single char", "a", true),
+                Arguments.of("Leading spaces", "   words", false),
+                Arguments.of("mixed symbols", ".&#$!*", false),
+                Arguments.of("decimal", "32", false),
+                Arguments.of("all caps", "ABC", true)
         );
     }
 
@@ -53,8 +67,25 @@ public class LexerTests {
                 Arguments.of("Multiple Digits", "123.456", true),
                 Arguments.of("Negative Decimal", "-1.0", true),
                 Arguments.of("Trailing Decimal", "1.", false),
-                Arguments.of("Leading Decimal", ".5", false)
-        );
+                Arguments.of("Leading Decimal", ".5", false),
+                Arguments.of("char decimal", "5.toString()", false),
+                Arguments.of("Integer Only", "1", false),
+                Arguments.of("neg whole", "-1", false),
+                Arguments.of("start 0", "0.51", true),
+                Arguments.of("neg lead 0", "-0.51", true),
+                Arguments.of("chars", "test", false),
+                Arguments.of("symbols", "10.&^%$#", false),
+                Arguments.of("empty", "", false),
+                Arguments.of("space", "0. 1", false),
+                Arguments.of("zero", "0.0", true),
+                Arguments.of("trailing 0s", "3.4000", true),
+                Arguments.of("leading 0s", "000.51", false),
+                Arguments.of("neg trailing 0s", "-3.4000", true),
+                Arguments.of("neg leading 0s", "-000.51", false),
+                Arguments.of("lead 0 pt 2", "030.51", false),
+                Arguments.of("sign", "-", false),
+                Arguments.of("just space", " ", false)
+                );
     }
 
     @ParameterizedTest
