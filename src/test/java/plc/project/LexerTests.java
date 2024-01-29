@@ -52,7 +52,27 @@ public class LexerTests {
                 Arguments.of("Single Digit", "1", true),
                 Arguments.of("Multiple Digits", "12345", true),
                 Arguments.of("Negative", "-1", true),
-                Arguments.of("Leading Zero", "01", false)
+                Arguments.of("Leading Zero", "01", false),
+                Arguments.of("Neg Zero", "-0", false),
+                Arguments.of("Neg sign", "-", false),
+                Arguments.of("Trailing Zeros", "35000", true),
+                Arguments.of("Decimal", "12.32", false),
+                Arguments.of("Zero", "0", true),
+                Arguments.of("Multiple Zeros", "0000", false),
+                Arguments.of("Symbols", "10&%$", false),
+                Arguments.of("Empty", " ", false),
+                Arguments.of("Lead Space", " 435", false),
+                Arguments.of("Trail space", "123 ", false),
+                Arguments.of("Chars", "abc", false),
+                Arguments.of("Neg Leading 0", "-01234", false),
+                Arguments.of("Positive", "+10", false),
+                Arguments.of("Neg and Space", "- 564", false),
+                Arguments.of("Multiple signs", "--76", false),
+                Arguments.of("Sign After", "54-", false),
+                Arguments.of("Mixed", "10ab67c", false),
+                Arguments.of("Plus", "+", false),
+                Arguments.of("Comma", "10,000", false),
+                Arguments.of("Middle Space", "78 342", false)
         );
     }
 
@@ -84,7 +104,8 @@ public class LexerTests {
                 Arguments.of("neg leading 0s", "-000.51", false),
                 Arguments.of("lead 0 pt 2", "030.51", false),
                 Arguments.of("sign", "-", false),
-                Arguments.of("just space", " ", false)
+                Arguments.of("just space", " ", false),
+                Arguments.of("Multiple signs", "--6.8", false)
                 );
     }
 
@@ -99,7 +120,16 @@ public class LexerTests {
                 Arguments.of("Alphabetic", "\'c\'", true),
                 Arguments.of("Newline Escape", "\'\\n\'", true),
                 Arguments.of("Empty", "\'\'", false),
-                Arguments.of("Multiple", "\'abc\'", false)
+                Arguments.of("Multiple", "\'abc\'", false),
+                Arguments.of("Num", "\'7\'", false),
+                Arguments.of("Space", "\' \'", false),
+                Arguments.of("Slash", "\'\\\'", false),
+                Arguments.of("Unescape char", "'a'", false),
+                Arguments.of("Tab", "\'\\t\'", true),
+                Arguments.of("Missing front", "a\'", false),
+                Arguments.of("Missing end", "\'a", false),
+                Arguments.of("Char newline", "\'a\\t\'", false),
+                Arguments.of("Invalid Escape", "\'\\q\'", false)
         );
     }
 
@@ -115,7 +145,21 @@ public class LexerTests {
                 Arguments.of("Alphabetic", "\"abc\"", true),
                 Arguments.of("Newline Escape", "\"Hello,\\nWorld\"", true),
                 Arguments.of("Unterminated", "\"unterminated", false),
-                Arguments.of("Invalid Escape", "\"invalid\\escape\"", false)
+                Arguments.of("Invalid Escape", "\"invalid\\escape\"", false),
+                Arguments.of("Escape", "\"1\\t2\"", true),
+                Arguments.of("escape quote", "\"1\\'2\"", true),
+                Arguments.of("space", "\" \"", true),
+                Arguments.of("escape char", "\"1\\q2\"", false),
+                Arguments.of("empty", "", false),
+                Arguments.of("missing quote 2", "unterminated\"", false),
+                Arguments.of("extra slash", "\"1\\2\"", false),
+                Arguments.of("slash only", "\"\\\"", false),
+                Arguments.of("slash only", "\"\\\\\"", true),
+                Arguments.of("double quotes", "\"\"Hello\"\"", false),
+                Arguments.of("slash symbol", "\"\"\\*\"\"", false),
+                Arguments.of("escapes", "\"\\bnrt\"", true),
+                Arguments.of("lone char", "c", false),
+                Arguments.of("lone char with quote", "\"c\"", true)
         );
     }
 
@@ -131,7 +175,20 @@ public class LexerTests {
                 Arguments.of("Character", "(", true),
                 Arguments.of("Comparison", "!=", true),
                 Arguments.of("Space", " ", false),
-                Arguments.of("Tab", "\t", false)
+                Arguments.of("Tab", "\t", false),
+                Arguments.of("equals twice", "==", true),
+                Arguments.of("equal once", "=", true),
+                Arguments.of("& operator", "&&", true),
+                Arguments.of("Or operator", "||", true),
+                Arguments.of("Char", "a", false),
+                Arguments.of("Num", "5", false),
+                Arguments.of("Add", "+", true),
+                Arguments.of("Subtract", "-", true),
+                Arguments.of("Semicolon", ";", true),
+                Arguments.of("Closing", ")", true),
+                Arguments.of("Space operator", "= =", false),
+                Arguments.of("front space", " =", false),
+                Arguments.of("Empty", "", false)
         );
     }
 

@@ -48,7 +48,7 @@ public final class Lexer {
 
     public Token lexIdentifier() {
         StringBuilder identifier=new StringBuilder();
-        if(peek("[A-za-z@]")){
+        if(peek("[A-za-z@]")){ //starting options
             if(match("@")){ //starts with @
                 identifier.append("@");
             }
