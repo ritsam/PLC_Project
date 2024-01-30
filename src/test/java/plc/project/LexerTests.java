@@ -54,6 +54,7 @@ public class LexerTests {
                 Arguments.of("Negative", "-1", true),
                 Arguments.of("Leading Zero", "01", false),
                 Arguments.of("Neg Zero", "-0", false),
+                Arguments.of("Neg Zero multiple", "-00", false),
                 Arguments.of("Neg sign", "-", false),
                 Arguments.of("Trailing Zeros", "35000", true),
                 Arguments.of("Decimal", "12.32", false),
