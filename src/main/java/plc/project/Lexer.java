@@ -52,12 +52,8 @@ public final class Lexer {
     public Token lexToken() { //TODO
         if (peek("[A-Za-z@]")) {
             return lexIdentifier();
-        }
-        else if (peek("[-]", "[0-9]") || peek("[0-9]")){ //integer or decimal
+        } else if (peek("[+\\-]", "[0-9]") || peek("[0-9]")){ //integer or decimal
             return lexNumber();
-        }
-        else if(peek("\'")){
-            return lexCharacter();
         }
         else {
             throw new ParseException("Unexpected character", chars.index);
@@ -66,7 +62,7 @@ public final class Lexer {
     }
     public Token lexIdentifier() {//TODO- done
         if (peek("@")) { //@ can only start
-            chars.advance();
+//            chars.advance();
         }
         while (peek("[A-Za-z0-9_-]")) {
             chars.advance();
@@ -74,12 +70,10 @@ public final class Lexer {
         return chars.emit(Token.Type.IDENTIFIER);
     }
 
-    public Token lexNumber() {//TODO --almost done
-        if (peek("[-]", "[1-9]")) { //neg sign
+    public Token lexNumber() {
+        //TODO --almost done
+        if (peek("[-]")) { //neg sign
             match("[-]");
-        }
-        if (peek("[0]", "[1-9]")) { //leading zeros
-            throw new ParseException("Leading 0", chars.index);
         }
         while (peek("[0-9]"))
             match("[0-9]");
@@ -91,66 +85,20 @@ public final class Lexer {
         }
         return chars.emit(Token.Type.INTEGER);
     }
-    public Token lexCharacter() { //TODO
-        //open
-       if (peek("\'")) {
-           match("\'");
-       }
-       if (peek("^'\\n\\r\\\\")){
-            match("^'\\n\\r\\\\");
-       }
-       else if(peek("\\\\")) {
-           lexEscape();
-       }
-       else{
-           throw new ParseException("Invalid character", chars.index);
-       }
-       //close
-        if (peek("\'")) {
-            match("\'");
-            return chars.emit(Token.Type.CHARACTER);
-        }
-        else{
-            throw new ParseException("Invalid character", chars.index);
-        }
+    public Token lexCharacter() {
+        throw new UnsupportedOperationException(); //TODO
     }
 
-    public Token lexString() { //TODO
-        //open string
-        if (peek("\"")) {
-            match("\"");
-        }
-//^"\n\r\\] | escape
-
-        //close string
-        if (peek("\"")) {
-            match("\"");
-            return chars.emit(Token.Type.STRING);
-        }
-        else{
-            throw new ParseException("Invalid string", chars.index);
-        }
+    public Token lexString() {
+        throw new UnsupportedOperationException(); //TODO
     }
 
-    public void lexEscape() { //TODO - done (i think)
-        // escape ::= '\' [bnrt'"\\]
-        if (peek("\\\\", "[bnrt\'\"\\\\]")) {
-            match("\\\\", "[bnrt\'\"\\\\]");
-        }
-        else{
-            throw new ParseException("Invalid Escape", chars.index);
-        }
+    public void lexEscape() {
+        throw new UnsupportedOperationException(); //TODO
     }
 
-    public Token lexOperator() { //TODO
-        //operator ::= [!=] '='? | '&&' | '||' | 'any character'
-        if(match("!", "=") || match("|", "|") || match("&", "&") || match("=", "=")) {
-            return chars.emit(Token.Type.OPERATOR);
-        }
-        else {
-            match(".");
-        }
-        return chars.emit(Token.Type.OPERATOR);
+    public Token lexOperator() {
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
