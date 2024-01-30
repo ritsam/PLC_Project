@@ -72,9 +72,12 @@ public final class Lexer {
 
     public Token lexNumber() {
         //TODO --almost done
-        if (peek("[-]")) { //neg sign
+        if (peek("[-]", "[1-9]")) { //neg sign
             match("[-]");
         }
+        //if (peek("[0]", "[1-9]")) {return false} //leading zeros
+
+
         while (peek("[0-9]"))
             match("[0-9]");
         if (peek("[.]", "[0-9]")) { //decimal, number
