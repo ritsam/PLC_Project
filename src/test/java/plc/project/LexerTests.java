@@ -167,7 +167,18 @@ public class LexerTests {
                 Arguments.of("slash symbol", "\"\"\\*\"\"", false),
                 Arguments.of("escapes", "\"\\bnrt\"", true),
                 Arguments.of("lone char", "c", false),
-                Arguments.of("lone char with quote", "\"c\"", true)
+                Arguments.of("lone char with quote", "\"c\"", true),
+                Arguments.of("Symbols", "\"@#$%^&*!\"", true),
+                Arguments.of("Multiple Quotes", "\"\"\"\"", true),
+
+                //Arguments.of("Invalid Escape", "\"invalid\\escape\"", false),
+                Arguments.of("Another Invalid Escape", "\\x", false),
+                Arguments.of("Backspace", "\\b", false),
+                Arguments.of("Double slashes no Quotes", "\\\\", false),
+                Arguments.of("Double slashes w Quotes", "\\\"\"\\", false),
+                Arguments.of("Letters in/outside quotes", "c\"c\"\"\"c", false),
+                Arguments.of("Char Reference no Quotes", "\\n\\r\\t", false),
+                Arguments.of("Char Reference w Quotes", "\"\n\\r\\t\"", true)
         );
     }
 
