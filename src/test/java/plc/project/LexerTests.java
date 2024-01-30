@@ -105,7 +105,14 @@ public class LexerTests {
                 Arguments.of("lead 0 pt 2", "030.51", false),
                 Arguments.of("sign", "-", false),
                 Arguments.of("just space", " ", false),
-                Arguments.of("Multiple signs", "--6.8", false)
+                Arguments.of("Multiple signs", "--6.8", false),
+                Arguments.of("pos", "+", false),
+                Arguments.of("pos decimal", "+1.1", false),
+                Arguments.of("pipe sign", "|1", false),
+                Arguments.of("invalid decimal", "1:2", false),
+                Arguments.of("neg 0", "-0.0", false),
+                Arguments.of("trailing digits", "123", false),
+                Arguments.of("unicode", "႑", false)
                 );
     }
 

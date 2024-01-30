@@ -27,10 +27,17 @@ public final class Lexer {
      * Repeatedly lexes the input using {@link #lexToken()}, also skipping over
      * whitespace where appropriate.
      */
-    public List<Token> lex() {
-        List <Token> tokens= new ArrayList<>(); //TODO
+    public List<Token> lex() {//TODO -done
+        List<Token> tokens = new ArrayList<>();
         Token t = lexToken();
-        tokens.add(t);
+        while (chars.has(0)) {
+            if (!(peek("[ \b\n\r\t]"))){ //not empty space
+                tokens.add(t);
+            }
+            else {
+                chars.skip();
+            }
+        }
         return tokens;
     }
 
@@ -42,29 +49,42 @@ public final class Lexer {
      * The next character should start a valid token since whitespace is handled
      * by {@link #lex()}
      */
-    public Token lexToken() {
-        throw new UnsupportedOperationException(); //TODO
-    }
-
-    public Token lexIdentifier() {
-        StringBuilder identifier=new StringBuilder();
-        if(peek("[A-za-z@]")){ //starting options
-            if(match("@")){ //starts with @
-                identifier.append("@");
-            }
-            while(peek("[A-Za-z0-9_-]")){
-                identifier.append(chars.get(0));
-                chars.advance();
-            }
-            return chars.emit(Token.Type.IDENTIFIER);
+    public Token lexToken() { //TODO
+        if (peek("[A-Za-z@]")) {
+            return lexIdentifier();
+        } else if (peek("[+\\-]", "[0-9]") || peek("[0-9]")){ //integer or decimal
+            return lexNumber();
         }
-        throw new ParseException("Invalid identifier",chars.index);
+        else {
+            throw new ParseException("Unexpected character", chars.index);
+        }
+
+    }
+    public Token lexIdentifier() {//TODO- done
+        if (peek("@")) { //@ can only start
+            chars.advance();
+        }
+        while (peek("[A-Za-z0-9_-]")) {
+            chars.advance();
+        }
+        return chars.emit(Token.Type.IDENTIFIER);
     }
 
     public Token lexNumber() {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO --almost done
+        if (peek("[-]")) { //neg sign
+            match("[-]");
+        }
+        while (peek("[0-9]"))
+            match("[0-9]");
+        if (peek("[.]", "[0-9]")) { //decimal, number
+            match("[.]");
+            while (peek("[0-9]"))
+                match("[0-9]");
+            return chars.emit(Token.Type.DECIMAL);
+        }
+        return chars.emit(Token.Type.INTEGER);
     }
-
     public Token lexCharacter() {
         throw new UnsupportedOperationException(); //TODO
     }
@@ -78,15 +98,7 @@ public final class Lexer {
     }
 
     public Token lexOperator() {
-       ///  { //TODO
-            if (match("!=") || match("==") || match("&&") || match("\\|\\|")) {
-                return chars.emit(Token.Type.OPERATOR);
-            } else {
-                chars.advance();
-                return chars.emit(Token.Type.OPERATOR);
-            }
-     //   }
-      //  throw new ParseException("Invalid operator",chars.index);
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
