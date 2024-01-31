@@ -33,6 +33,7 @@ public final class Lexer {
         while (chars.has(0)) {
             if (!(peek("[ \b\n\r\t]"))){ //not empty space
                 tokens.add(t);
+                //chars.skip();
             }
             else {
                 chars.skip();
