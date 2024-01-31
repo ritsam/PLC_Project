@@ -192,14 +192,13 @@ public class LexerTests {
     private static Stream<Arguments> testOperator() {
         return Stream.of(
                 Arguments.of("Character", "(", true),
-                Arguments.of("equal once", "=", true),
                 Arguments.of("Comparison", "!=", true),
-                Arguments.of("equals twice", "==", true),
-                Arguments.of("& operator", "&&", true),
-                Arguments.of("Or operator", "||", true),
-                Arguments.of("& operator", "&", true),
                 Arguments.of("Space", " ", false),
                 Arguments.of("Tab", "\t", false),
+                Arguments.of("equals twice", "==", true),
+                Arguments.of("equal once", "=", true),
+                Arguments.of("& operator", "&&", true),
+                Arguments.of("Or operator", "||", true),
                 Arguments.of("Char", "a", false),
                 Arguments.of("Num", "5", false),
                 Arguments.of("Add", "+", true),
@@ -211,11 +210,6 @@ public class LexerTests {
                 Arguments.of("Empty", "", false)
         );
     }
-
-    /**
-
-     */
-
 
     @ParameterizedTest
     @MethodSource
@@ -280,4 +274,5 @@ public class LexerTests {
             Assertions.assertFalse(success, e.getMessage());
         }
     }
+
 }

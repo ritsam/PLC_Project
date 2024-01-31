@@ -59,10 +59,6 @@ public final class Lexer {
         else if(peek("\'")){
             return lexCharacter();
         }
-        else if(peek("[!=]") || peek("==") || peek("||") || peek("&&") || peek("[^\\s=!&|]") || peek("(") || peek(")")) {
-        //else if (peek("[^\\s=!&|]")){
-            return lexOperator();
-        }
         else {
             throw new ParseException("Unexpected character", chars.index);
         }
@@ -148,8 +144,7 @@ public final class Lexer {
 
     public Token lexOperator() { //TODO
         //operator ::= [!=] '='? | '&&' | '||' | 'any character'
-        //if(match("!=") || match("==") || match("||") || match("&&") || match("#")) {
-        if (match("!=") || match("==") || match("||") || match("&&") || match("[^\\s=!&|]") ) {
+        if(match("!", "=") || match("|", "|") || match("&", "&") || match("=", "=")) {
             return chars.emit(Token.Type.OPERATOR);
         }
         else {
