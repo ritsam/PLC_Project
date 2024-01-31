@@ -86,7 +86,6 @@ public final class Lexer {
         if (peek("[0]", "[1-9]")) { //leading zeros
             throw new ParseException("Leading 0", chars.index);
         }
-
         while (peek("[0-9]"))
             match("[0-9]");
         if (peek("[.]", "[0-9]")) { //decimal, number
