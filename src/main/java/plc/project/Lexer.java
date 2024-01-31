@@ -53,7 +53,7 @@ public final class Lexer {
         if (peek("[A-Za-z@]")) {
             return lexIdentifier();
         }
-        else if (peek("[-]", "[0-9]") || peek("[0-9]")){ //integer or decimal
+        else if (peek("[-]", "[1-9]") || peek("[0-9]")){ //integer or decimal
             return lexNumber();
         }
         else if(peek("\'")){
@@ -64,7 +64,7 @@ public final class Lexer {
         }
 
     }
-    public Token lexIdentifier() {//TODO- done
+    public Token lexIdentifier() {// done
         if (peek("@")) { //@ can only start
             chars.advance();
         }
@@ -91,29 +91,31 @@ public final class Lexer {
         }
         return chars.emit(Token.Type.INTEGER);
     }
-    public Token lexCharacter() { //TODO
-        //open
+    public Token lexCharacter() { //done
+        // open
         if (peek("\'")) {
             match("\'");
-        }
-        if (peek("^'\\n\\r\\\\")){
-            match("^'\\n\\r\\\\");
-        }
-        else if(peek("\\\\")) {
-            lexEscape();
-        }
-        else{
+        } else {
             throw new ParseException("Invalid character", chars.index);
         }
-        //close
+
+        if (peek("^'\\n\\r\\\\") || peek("\\\\")) {
+            lexEscape();
+        } else if (peek("[^'\n\r\\\\ ]")) {
+            match("[^'\n\r\\\\ ]");
+        } else {
+            throw new ParseException("Invalid character", chars.index);
+        }
+
+        // close
         if (peek("\'")) {
             match("\'");
             return chars.emit(Token.Type.CHARACTER);
-        }
-        else{
+        } else {
             throw new ParseException("Invalid character", chars.index);
         }
     }
+
 
     public Token lexString() { //TODO
         //open string
