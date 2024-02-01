@@ -29,10 +29,9 @@ public final class Lexer {
      */
     public List<Token> lex() {//-done
         List<Token> tokens = new ArrayList<>();
-        Token t = lexToken();
         while (chars.has(0)) {
             if (!(peek("[ \b\n\r\t]"))){ //not empty space
-                tokens.add(t);
+                tokens.add(lexToken());
             }
             else {
                 chars.skip();
@@ -63,7 +62,7 @@ public final class Lexer {
             return lexString();
         }
         else {
-            throw new ParseException("Unexpected character", chars.index);
+            return lexOperator();
         }
 
     }
@@ -178,8 +177,8 @@ public final class Lexer {
         }
         else {
             match(".");
+            return chars.emit(Token.Type.OPERATOR);
         }
-        return chars.emit(Token.Type.OPERATOR);
     }
 
     /**
