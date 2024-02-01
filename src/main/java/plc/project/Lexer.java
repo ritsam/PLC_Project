@@ -27,7 +27,7 @@ public final class Lexer {
      * Repeatedly lexes the input using {@link #lexToken()}, also skipping over
      * whitespace where appropriate.
      */
-    public List<Token> lex() {//-done
+    public List<Token> lex() {//TODO- not sure if right
         List<Token> tokens = new ArrayList<>();
         while (chars.has(0)) {
             if (!(peek("[ \b\n\r\t]"))){ //not empty space
@@ -48,7 +48,7 @@ public final class Lexer {
      * The next character should start a valid token since whitespace is handled
      * by {@link #lex()}
      */
-    public Token lexToken() { //TODO
+    public Token lexToken() { //done
         if (peek("[A-Za-z@]")) {
             return lexIdentifier();
         }
@@ -144,20 +144,33 @@ public final class Lexer {
 
 
     public Token lexString() { //TODO
+        //^"\n\r\\] | escape
         //open string
         if (peek("\"")) {
             match("\"");
         }
-//^"\n\r\\] | escape
-
+        else {
+            throw new ParseException("Invalid string", chars.index); //no open
+        }
+        while (!peek("\"")) {  //middle
+            if(peek("[^\\\\\"\\n\\r]")) { // other chars
+                match("[^\\\\\"\\n\\r]");
+            }
+            else if (peek("\\\\")) { // escape seq
+                lexEscape();
+            }
+            else {
+            throw new ParseException("Invalid string", chars.index);
+        }
+        }
         //close string
         if (peek("\"")) {
             match("\"");
-            return chars.emit(Token.Type.STRING);
         }
-        else{
-            throw new ParseException("Invalid string", chars.index);
+        else {
+            throw new ParseException("Invalid string", chars.index); //no close
         }
+        return chars.emit(Token.Type.STRING);
     }
 
     public void lexEscape() { //done

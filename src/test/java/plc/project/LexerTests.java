@@ -181,7 +181,7 @@ public class LexerTests {
                 Arguments.of("Double slashes w Quotes", "\\\"\"\\", false),
                 Arguments.of("Letters in/outside quotes", "c\"c\"\"\"c", false),
                 Arguments.of("Char Reference no Quotes", "\\n\\r\\t", false),
-                Arguments.of("Char Reference w Quotes", "\"\n\\r\\t\"", true)
+                Arguments.of("Char Reference w Quotes", "\"\\n\\r\\t\"", true)
         );
     }
 
