@@ -75,20 +75,42 @@ public final class Lexer {
     }
 
     public Token lexNumber() {//TODO --almost done
-        if (peek("[-]", "[1-9]")) { //neg sign
-            match("[-]");
+        if (match("-")) {
+            // If negative sign is present, check for leading zero or digit
+            if (peek("0", "[1-9]")) {
+                throw new ParseException("Leading 0", chars.index);
+            }
+        } else {
+            // If no negative sign, check for leading zero
+            if (match("0")) {
+                // Check for decimal point and digits
+                if (match("[.]", "[0-9]")) {
+                    while (peek("[0-9]")) {
+                        match("[0-9]");
+                    }
+                    return chars.emit(Token.Type.DECIMAL);
+                } else {
+                    // Leading zero without decimal point is an error
+                    throw new ParseException("Leading 0", chars.index);
+                }
+            }
         }
-        if (peek("[0]", "[1-9]")) { //leading zeros
-            throw new ParseException("Leading 0", chars.index);
-        }
-        while (peek("[0-9]"))
+
+        // Handle digits before decimal point
+        while (peek("[0-9]")) {
             match("[0-9]");
-        if (peek("[.]", "[0-9]")) { //decimal, number
-            match("[.]");
-            while (peek("[0-9]"))
+        }
+
+        // Check for decimal point and digits after it
+        if (peek("[.]", "[0-9]")) {
+            match("[.]", "[0-9]");
+            while (peek("[0-9]")) {
                 match("[0-9]");
+            }
             return chars.emit(Token.Type.DECIMAL);
         }
+
+        // If no decimal point, it's an integer
         return chars.emit(Token.Type.INTEGER);
     }
     public Token lexCharacter() { //done
