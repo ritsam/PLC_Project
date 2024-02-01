@@ -27,7 +27,7 @@ public final class Lexer {
      * Repeatedly lexes the input using {@link #lexToken()}, also skipping over
      * whitespace where appropriate.
      */
-    public List<Token> lex() {//TODO -done
+    public List<Token> lex() {//-done
         List<Token> tokens = new ArrayList<>();
         Token t = lexToken();
         while (chars.has(0)) {
@@ -59,6 +59,9 @@ public final class Lexer {
         else if(peek("\'")){
             return lexCharacter();
         }
+        else if(peek("\"")){
+            return lexString();
+        }
         else {
             throw new ParseException("Unexpected character", chars.index);
         }
@@ -85,13 +88,15 @@ public final class Lexer {
             if (match("0")) {
                 // Check for decimal point and digits
                 if (match("[.]", "[0-9]")) {
+                    match("[.]");
+
                     while (peek("[0-9]")) {
                         match("[0-9]");
                     }
                     return chars.emit(Token.Type.DECIMAL);
                 } else {
                     // Leading zero without decimal point is an error
-                    throw new ParseException("Leading 0", chars.index);
+                    return chars.emit(Token.Type.INTEGER);
                 }
             }
         }
@@ -156,7 +161,7 @@ public final class Lexer {
         }
     }
 
-    public void lexEscape() { //TODO - done (i think)
+    public void lexEscape() { //done
         // escape ::= '\' [bnrt'"\\]
         if (peek("\\\\", "[bnrt\'\"\\\\]")) {
             match("\\\\", "[bnrt\'\"\\\\]");

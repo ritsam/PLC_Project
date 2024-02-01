@@ -28,12 +28,13 @@ public class LexerTests {
                 Arguments.of("@ leading", "@gmail", true),
                 Arguments.of("@ middle", "gm@il", false),
                 Arguments.of("@ only", "@", true),
-                Arguments.of("_ only", "_", false),
+                Arguments.of("_ only", "___", false),
                 Arguments.of("middle hyphen", "ritika-lara", true),
                 Arguments.of("space", " ", false),
                 Arguments.of("empty", "", false),
                 Arguments.of("with underscore", "user_name", true),
                 Arguments.of("single char", "a", true),
+                Arguments.of("hyphenated", "a-b-c", true),
                 Arguments.of("Leading spaces", "   words", false),
                 Arguments.of("mixed symbols", ".&#$!*", false),
                 Arguments.of("decimal", "32", false),
@@ -54,10 +55,11 @@ public class LexerTests {
                 Arguments.of("Negative", "-1", true),
                 Arguments.of("Leading Zero", "01", false),
                 Arguments.of("Neg Zero", "-0", false),
+                Arguments.of("Leading Zeros", "007", false),
                 Arguments.of("Neg Zero multiple", "-00", false),
                 Arguments.of("Neg sign", "-", false),
                 Arguments.of("Trailing Zeros", "35000", true),
-                Arguments.of("Decimal", "12.32", false),
+                Arguments.of("Decimal", "123.456", false),
                 Arguments.of("Zero", "0", true),
                 Arguments.of("Multiple Zeros", "0000", false),
                 Arguments.of("Symbols", "10&%$", false),
@@ -72,7 +74,7 @@ public class LexerTests {
                 Arguments.of("Sign After", "54-", false),
                 Arguments.of("Mixed", "10ab67c", false),
                 Arguments.of("Plus", "+", false),
-                Arguments.of("Comma", "10,000", false),
+                Arguments.of("Comma", "1,234", false),
                 Arguments.of("Middle Space", "78 342", false)
         );
     }
@@ -100,7 +102,7 @@ public class LexerTests {
                 Arguments.of("empty", "", false),
                 Arguments.of("space", "0. 1", false),
                 Arguments.of("zero", "0.0", true),
-                Arguments.of("trailing 0s", "3.4000", true),
+                Arguments.of("trailing 0s", "7.000", true),
                 Arguments.of("leading 0s", "000.51", false),
                 Arguments.of("neg trailing 0s", "-3.4000", true),
                 Arguments.of("lead 0 pt 2", "030.51", false),
@@ -113,7 +115,8 @@ public class LexerTests {
                 Arguments.of("invalid decimal", "1:2", false),
                 Arguments.of("neg 0", "-0.0", false),
                 Arguments.of("trailing digits", "123", false),
-                Arguments.of("unicode", "႑", false)
+                Arguments.of("unicode", "႑", false),
+                Arguments.of("double", "1..0", false)
                 );
     }
 
@@ -128,7 +131,8 @@ public class LexerTests {
                 Arguments.of("Alphabetic", "\'c\'", true),
                 Arguments.of("Newline Escape", "\'\\n\'", true),
                 Arguments.of("Empty", "\'\'", false),
-                Arguments.of("Multiple", "\'abc\'", false),
+                Arguments.of("Multiple", "\'", false),
+                Arguments.of("unterminated", "\'", false),
                 Arguments.of("Num", "\'7\'", true),
                 Arguments.of("Space", "\' \'", false),
                 Arguments.of("Slash", "\'\\\'", false),
@@ -199,6 +203,7 @@ public class LexerTests {
                 Arguments.of("& operator", "&&", true),
                 Arguments.of("Or operator", "||", true),
                 Arguments.of("Char", "a", false),
+                Arguments.of("Char", "$", true),
                 Arguments.of("Num", "5", false),
                 Arguments.of("Add", "+", true),
                 Arguments.of("Subtract", "-", true),
