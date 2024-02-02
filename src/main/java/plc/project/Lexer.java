@@ -84,16 +84,15 @@ public final class Lexer {
         } else {
             // If no negative sign, check for leading zero
             if (match("0")) {
-                // Check for decimal point and digits
+                // Check for decimal and digits
                 if (match("[.]", "[0-9]")) {
                     match("[.]");
-
                     while (peek("[0-9]")) {
                         match("[0-9]");
                     }
                     return chars.emit(Token.Type.DECIMAL);
                 } else {
-                    // Leading zero without decimal point is an error
+                    // Leading zero without decimal is an error
                     return chars.emit(Token.Type.INTEGER);
                 }
             }
@@ -112,7 +111,6 @@ public final class Lexer {
             }
             return chars.emit(Token.Type.DECIMAL);
         }
-
         // If no decimal point, it's an integer
         return chars.emit(Token.Type.INTEGER);
     }
@@ -184,13 +182,16 @@ public final class Lexer {
 
     public Token lexOperator() { //TODO
         //operator ::= [!=] '='? | '&&' | '||' | 'any character'
-        if(match("!", "=") || match("|", "|") || match("&", "&") || match("=", "=")) {
+        if (match("!", "=") || match("|", "|") || match("&", "&") || match("=", "=")) {
             return chars.emit(Token.Type.OPERATOR);
         }
-        else {
+        else if (match("|", "|")) {
+            return chars.emit(Token.Type.OPERATOR);
+        } else {
             match(".");
             return chars.emit(Token.Type.OPERATOR);
         }
+        //throw new ParseException("Invalid char", chars.index);
     }
 
     /**
