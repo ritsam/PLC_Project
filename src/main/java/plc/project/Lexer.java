@@ -75,26 +75,26 @@ public final class Lexer {
         return chars.emit(Token.Type.IDENTIFIER);
     }
 
-    public Token lexNumber() {//TODO --almost done
+    public Token lexNumber() {
         if (match("-")) {
             // If negative sign is present, check for leading zero or digit
-            if (peek("0", "[1-9]")) {
+            if (peek("0") && !peek("[.]", "[0-9]")) {
                 throw new ParseException("Leading 0", chars.index);
+                //return chars.emit(Token.Type.INTEGER);
             }
         } else {
             // If no negative sign, check for leading zero
             if (match("0")) {
                 // Check for decimal and digits
-                if (match("[.]", "[0-9]")) {
+                if (peek("[.]", "[0-9]")) {
                     match("[.]");
                     while (peek("[0-9]")) {
                         match("[0-9]");
                     }
                     return chars.emit(Token.Type.DECIMAL);
-                } else {
-                    // Leading zero without decimal is an error
-                    return chars.emit(Token.Type.INTEGER);
                 }
+                // Leading zero without decimal is not an error, just return as an integer
+                return chars.emit(Token.Type.INTEGER);
             }
         }
 
@@ -111,9 +111,12 @@ public final class Lexer {
             }
             return chars.emit(Token.Type.DECIMAL);
         }
+
         // If no decimal point, it's an integer
         return chars.emit(Token.Type.INTEGER);
     }
+
+
     public Token lexCharacter() { //done
         // open
         if (peek("\'")) {
@@ -140,35 +143,37 @@ public final class Lexer {
     }
 
 
-    public Token lexString() { //TODO
-        //^"\n\r\\] | escape
-        //open string
-        if (peek("\"")) {
+    public Token lexString() {
+        //if multiple quotes in a triplet set
+        if (peek("\"", "\"", "\"")) {
+            match("\"", "\"", "\"");
+        }
+        // starting quotes
+        else if (peek("\"")) {
             match("\"");
+        } else {
+            throw new ParseException("Invalid String", chars.index);
         }
-        else {
-            throw new ParseException("Invalid string", chars.index); //no open
-        }
-        while (!peek("\"")) {  //middle
-            if(peek("[^\\\\\"\\n\\r]")) { // other chars
-                match("[^\\\\\"\\n\\r]");
-            }
-            else if (peek("\\\\")) { // escape seq
+        // read string content
+        while (peek("[^\"\\n\\r]")) {
+            // legal escape
+            if (peek("\\\\")) {
                 lexEscape();
+            } else {
+                match(".");
             }
-            else {
-            throw new ParseException("Invalid string", chars.index);
         }
-        }
-        //close string
-        if (peek("\"")) {
+        // closing quote
+        if (peek("\"", "\"", "\"")) {
+            match("\"", "\"", "\"");
+        } else if (peek("\"")) {
             match("\"");
-        }
-        else {
-            throw new ParseException("Invalid string", chars.index); //no close
+        } else {
+            throw new ParseException("Unterminated String", chars.index);
         }
         return chars.emit(Token.Type.STRING);
     }
+
 
     public void lexEscape() { //done
         // escape ::= '\' [bnrt'"\\]
@@ -185,11 +190,9 @@ public final class Lexer {
             return chars.emit(Token.Type.OPERATOR);
         }
         else {
-            // If none of the specific operators are matched, treat as a single character operator
             match(".");
             return chars.emit(Token.Type.OPERATOR);
         }
-        //throw new ParseException("Invalid char", chars.index);
     }
     /**
      * Returns true if the next sequence of characters match the given patterns,

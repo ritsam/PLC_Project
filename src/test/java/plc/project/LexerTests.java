@@ -88,6 +88,7 @@ public class LexerTests {
     private static Stream<Arguments> testDecimal() {
         return Stream.of(
                 Arguments.of("Multiple Digits", "123.456", true),
+                Arguments.of("neg lead 0", "-0.51", true),
                 Arguments.of("Negative Decimal", "-1.0", true),
                 Arguments.of("Trailing Decimal", "1.", false),
                 Arguments.of("Leading Decimal", ".5", false),
@@ -95,7 +96,6 @@ public class LexerTests {
                 Arguments.of("Integer Only", "1", false),
                 Arguments.of("neg whole", "-1", false),
                 Arguments.of("start 0", "0.51", true),
-                Arguments.of("neg lead 0", "-0.51", true),
                 Arguments.of("neg leading 0s", "-000.51", false),
                 Arguments.of("chars", "test", false),
                 Arguments.of("symbols", "10.&^%$#", false),
@@ -153,6 +153,7 @@ public class LexerTests {
     private static Stream<Arguments> testString() {
         return Stream.of(
                 Arguments.of("Empty", "\"\"", true),
+                Arguments.of("Multiple Quotes", "\"\"\"\"", true),
                 Arguments.of("Alphabetic", "\"abc\"", true),
                 Arguments.of("Newline Escape", "\"Hello,\\nWorld\"", true),
                 Arguments.of("Unterminated", "\"unterminated", false),
@@ -172,9 +173,6 @@ public class LexerTests {
                 Arguments.of("lone char", "c", false),
                 Arguments.of("lone char with quote", "\"c\"", true),
                 Arguments.of("Symbols", "\"@#$%^&*!\"", true),
-                Arguments.of("Multiple Quotes", "\"\"\"\"", true),
-
-                //Arguments.of("Invalid Escape", "\"invalid\\escape\"", false),
                 Arguments.of("Another Invalid Escape", "\\x", false),
                 Arguments.of("Backspace", "\\b", false),
                 Arguments.of("Double slashes no Quotes", "\\\\", false),
