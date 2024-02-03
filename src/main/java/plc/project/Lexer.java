@@ -179,21 +179,18 @@ public final class Lexer {
             throw new ParseException("Invalid Escape", chars.index);
         }
     }
-
-    public Token lexOperator() { //TODO
-        //operator ::= [!=] '='? | '&&' | '||' | 'any character'
-        if (match("!", "=") || match("|", "|") || match("&", "&") || match("=", "=")) {
+    public Token lexOperator() {
+        // operator ::= [!=] '='? | '&&' | '||' | 'any character'
+        if (match("!", "=") || match("[|]", "[|]") || match("&", "&") || match("=", "=")) {
             return chars.emit(Token.Type.OPERATOR);
         }
-        else if (match("|", "|")) {
-            return chars.emit(Token.Type.OPERATOR);
-        } else {
+        else {
+            // If none of the specific operators are matched, treat as a single character operator
             match(".");
             return chars.emit(Token.Type.OPERATOR);
         }
         //throw new ParseException("Invalid char", chars.index);
     }
-
     /**
      * Returns true if the next sequence of characters match the given patterns,
      * which should be a regex. For example, {@code peek("a", "b", "c")} would
@@ -222,6 +219,7 @@ public final class Lexer {
         }
         return peek;
     }
+
 
     /**
      * A helper class maintaining the input string, current index of the char
