@@ -88,13 +88,15 @@ public class LexerTests {
     private static Stream<Arguments> testDecimal() {
         return Stream.of(
                 Arguments.of("Multiple Digits", "123.456", true),
-                Arguments.of("neg lead 0", "-0.51", true),
+                Arguments.of("neg lead 0", "-0.5", true),
                 Arguments.of("Negative Decimal", "-1.0", true),
                 Arguments.of("Trailing Decimal", "1.", false),
                 Arguments.of("Leading Decimal", ".5", false),
                 Arguments.of("char decimal", "5.toString()", false),
                 Arguments.of("Integer Only", "1", false),
                 Arguments.of("neg whole", "-1", false),
+                Arguments.of("tilde integer", "~1", false),
+                Arguments.of("symbol integer", "`1.0", false),
                 Arguments.of("start 0", "0.51", true),
                 Arguments.of("neg leading 0s", "-000.51", false),
                 Arguments.of("chars", "test", false),
@@ -116,7 +118,7 @@ public class LexerTests {
                 Arguments.of("neg 0", "-0.0", false),
                 Arguments.of("trailing digits", "123", false),
                 Arguments.of("unicode", "႑", false),
-                Arguments.of("double", "1..0", false)
+                Arguments.of("double period", "1..0", false)
                 );
     }
 

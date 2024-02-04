@@ -76,13 +76,15 @@ public final class Lexer {
     }
 
     public Token lexNumber() {
-        if (match("-")) {
+        if (match("[-\\+]", "[0-9]")) {
             // If negative sign is present, check for leading zero or digit
-            if (peek("0") && !peek("[.]", "[0-9]")) {
-                throw new ParseException("Leading 0", chars.index);
-                //return chars.emit(Token.Type.INTEGER);
+            if (match("0") && match("[.]", "[0-9]")) {
+                //throw new ParseException("Leading 0", chars.index);
+                return chars.emit(Token.Type.DECIMAL);
             }
-        } else {
+        }
+
+        else {
             // If no negative sign, check for leading zero
             if (match("0")) {
                 // Check for decimal and digits
