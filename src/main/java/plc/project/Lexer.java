@@ -27,18 +27,19 @@ public final class Lexer {
      * Repeatedly lexes the input using {@link #lexToken()}, also skipping over
      * whitespace where appropriate.
      */
-    public List<Token> lex() {//TODO- not sure if right
-        List<Token> tokens = new ArrayList<>();
-        while (chars.has(0)) {
-            if (!(peek("[ \b\n\r\t]"))){ //not empty space
+    public List<Token> lex() {
+        List<Token> tokens = new ArrayList<Token>();
+        while (peek(".")) {
+            if (peek("[ \b\n\r\t]")) {
+                chars.advance();
+                chars.skip();
+            }
+            else {
                 tokens.add(lexToken());
             }
-            chars.advance();
-            chars.skip();
         }
         return tokens;
     }
-
     /**
      * This method determines the type of the next token, delegating to the
      * appropriate lex method. As such, it is best for this method to not change
@@ -79,7 +80,6 @@ public final class Lexer {
         if (match("[-\\+]", "[0-9]")) {
             // If negative sign is present, check for leading zero or digit
             if (match("0") && match("[.]", "[0-9]")) {
-                //throw new ParseException("Leading 0", chars.index);
                 return chars.emit(Token.Type.DECIMAL);
             }
         }
