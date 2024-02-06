@@ -144,7 +144,6 @@ public final class Lexer {
         }
     }
 
-
     public Token lexString() {
         //if multiple quotes in a triplet set
         if (peek("\"", "\"", "\"")) {

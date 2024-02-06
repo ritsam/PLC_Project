@@ -75,7 +75,11 @@ public class LexerTests {
                 Arguments.of("Mixed", "10ab67c", false),
                 Arguments.of("Plus", "+", false),
                 Arguments.of("Comma", "1,234", false),
-                Arguments.of("Middle Space", "78 342", false)
+                Arguments.of("Middle Space", "78 342", false),
+                Arguments.of("Negative Decimal", "-0.51", false),
+                Arguments.of("Positive Decimal", "0.5", false),
+                Arguments.of("Multiple Periods", "9.78.76", false),
+                Arguments.of("Regular Decimal", "8.0", false)
         );
     }
 
@@ -88,7 +92,7 @@ public class LexerTests {
     private static Stream<Arguments> testDecimal() {
         return Stream.of(
                 Arguments.of("Multiple Digits", "123.456", true),
-                Arguments.of("neg lead 0", "-0.5", true),
+                Arguments.of("neg lead 0", "-0.5", true), // fix?
                 Arguments.of("Negative Decimal", "-1.0", true),
                 Arguments.of("Trailing Decimal", "1.", false),
                 Arguments.of("Leading Decimal", ".5", false),
@@ -118,7 +122,10 @@ public class LexerTests {
                 Arguments.of("neg 0", "-0.0", false),
                 Arguments.of("trailing digits", "123", false),
                 Arguments.of("unicode", "႑", false),
-                Arguments.of("double period", "1..0", false)
+                Arguments.of("double period", "1..0", false),
+                Arguments.of("Multiple Periods", "9.78.76", false),
+                Arguments.of("String with Periods", "a.vbd0", false),
+                Arguments.of("Decimal mixed w tilde", "9.78~00", false)
                 );
     }
 
