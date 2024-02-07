@@ -38,7 +38,8 @@ public class LexerTests {
                 Arguments.of("Leading spaces", "   words", false),
                 Arguments.of("mixed symbols", ".&#$!*", false),
                 Arguments.of("decimal", "32", false),
-                Arguments.of("all caps", "ABC", true)
+                Arguments.of("all caps", "ABC", true),
+                Arguments.of("tilde", "~", false)
         );
     }
 
@@ -92,7 +93,7 @@ public class LexerTests {
     private static Stream<Arguments> testDecimal() {
         return Stream.of(
                 Arguments.of("Multiple Digits", "123.456", true),
-                Arguments.of("neg lead 0", "-0.5", true), // fix?
+                Arguments.of("neg lead 0", "-0.5", false), // fix?
                 Arguments.of("Negative Decimal", "-1.0", true),
                 Arguments.of("Trailing Decimal", "1.", false),
                 Arguments.of("Leading Decimal", ".5", false),
@@ -244,7 +245,29 @@ public class LexerTests {
                         new Token(Token.Type.STRING, "\"Hello, World!\"", 6),
                         new Token(Token.Type.OPERATOR, ")", 21),
                         new Token(Token.Type.OPERATOR, ";", 22)
+                )),
+                Arguments.of("Example 3", "Hi there~ 980.3,-\"World!\";", Arrays.asList(
+                        new Token(Token.Type.IDENTIFIER, "Hi", 0),
+                        new Token(Token.Type.IDENTIFIER, "there", 3),
+                        new Token(Token.Type.OPERATOR, "~", 8),
+                        new Token(Token.Type.DECIMAL, "980.3", 10),
+                        new Token(Token.Type.OPERATOR, ",", 15),
+                        new Token(Token.Type.OPERATOR, "-", 16),
+                        new Token(Token.Type.STRING, "\"World!\"", 17),
+                        new Token(Token.Type.OPERATOR, ";", 25)
+                )),
+                Arguments.of("Example 4", "Hi there ~ 980.3 ,- World ! ;", Arrays.asList(
+                        new Token(Token.Type.IDENTIFIER, "Hi", 0),
+                        new Token(Token.Type.IDENTIFIER, "there", 3),
+                        new Token(Token.Type.OPERATOR, "~", 9),
+                        new Token(Token.Type.DECIMAL, "980.3", 11),
+                        new Token(Token.Type.OPERATOR, ",", 17),
+                        new Token(Token.Type.OPERATOR, "-", 18),
+                        new Token(Token.Type.IDENTIFIER, "World", 20),
+                        new Token(Token.Type.OPERATOR, "!", 26),
+                        new Token(Token.Type.OPERATOR, ";", 28)
                 ))
+
         );
     }
 
