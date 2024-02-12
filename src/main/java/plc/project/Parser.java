@@ -1,5 +1,7 @@
 package plc.project;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -84,7 +86,7 @@ public final class Parser {
      * statement, then it is an expression/assignment statement.
      */
     public Ast.Statement parseStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO  2a partial
     }
 
     /**
@@ -145,35 +147,41 @@ public final class Parser {
      * Parses the {@code expression} rule.
      */
     public Ast.Expression parseExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        return parseLogicalExpression(); //TODO 2a
     }
 
     /**
      * Parses the {@code logical-expression} rule.
      */
     public Ast.Expression parseLogicalExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2a
     }
 
     /**
      * Parses the {@code comparison-expression} rule.
      */
     public Ast.Expression parseComparisonExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2a
     }
 
     /**
      * Parses the {@code additive-expression} rule.
      */
     public Ast.Expression parseAdditiveExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2a
     }
 
     /**
      * Parses the {@code multiplicative-expression} rule.
      */
     public Ast.Expression parseMultiplicativeExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        Ast.Expression left=parsePrimaryExpression(); //TODO 2a
+        while(match("/")||match("*")){
+            String multi= tokens.get(0).getLiteral();
+            Ast.Expression right=parseAdditiveExpression();
+            left=new Ast.Expression.Binary(multi,left,right);
+        }
+        return left;
     }
 
     /**
@@ -182,8 +190,40 @@ public final class Parser {
      * functions. It may be helpful to break these up into other methods but is
      * not strictly necessary.
      */
-    public Ast.Expression parsePrimaryExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+    public Ast.Expression parsePrimaryExpression() throws ParseException { //TODO 2a
+        if (match("NIL")) {
+            return new Ast.Expression.Literal(null);
+        } else if (match("TRUE")) {
+            return new Ast.Expression.Literal(true);
+        } else if (match("FALSE")) {
+            return new Ast.Expression.Literal(false);
+        } else if (match(Token.Type.INTEGER)) {
+            BigInteger in = new BigInteger(tokens.get(0).getLiteral());
+            ;
+            return new Ast.Expression.Literal(in);
+        } else if (match(Token.Type.DECIMAL)) {
+            BigDecimal dec = new BigDecimal(tokens.get(0).getLiteral());
+            return new Ast.Expression.Literal(dec);
+        } else if (match(Token.Type.CHARACTER)) {
+            String ch = tokens.get(0).getLiteral();
+            return new Ast.Expression.Literal(ch.charAt(1));
+        } else if (match(Token.Type.STRING)) {
+            String str = tokens.get(0).getLiteral();
+            str = str.replace("\\n", "\n");
+            str = str.replace("\\t", "\t");
+            str = str.replace("\\b", "\b");
+            str = str.replace("\\r", "\r");
+            str = str.replace("\\'", "'");
+            str = str.replace("\\\\", "\\");
+            str = str.replace("\\\"", "\"");
+            str = str.substring(1, str.length() - 1);
+            return new Ast.Expression.Literal(str);
+        } else if (peek(Token.Type.IDENTIFIER)) {
+            String id = tokens.get(0).getLiteral();
+            //...continue
+        }
+        BigDecimal dec = new BigDecimal(tokens.get(0).getLiteral());
+        return new Ast.Expression.Literal(dec);
     }
 
     /**
