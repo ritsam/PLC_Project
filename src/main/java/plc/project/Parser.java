@@ -168,7 +168,13 @@ public final class Parser {
      * Parses the {@code additive-expression} rule.
      */
     public Ast.Expression parseAdditiveExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2a
+        Ast.Expression left=parseMultiplicativeExpression(); //TODO 2a
+        while(match("+")||match("-")){
+            String add= tokens.get(0).getLiteral();
+            Ast.Expression right=parseMultiplicativeExpression();
+            left=new Ast.Expression.Binary(add,left,right);
+        }
+        return left;
     }
 
     /**
