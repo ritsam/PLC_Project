@@ -32,12 +32,14 @@ public final class Parser {
         throw new UnsupportedOperationException(); //TODO
     }
 
+
     /**
      * Parses the {@code global} rule. This method should only be called if the
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
-    public Ast.Global parseGlobal() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+    public Ast.Global parseGlobal() {
+
+        throw new UnsupportedOperationException(); //idk
     }
 
     /**
@@ -86,8 +88,12 @@ public final class Parser {
      * statement, then it is an expression/assignment statement.
      */
     public Ast.Statement parseStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO  2a partial
+
+        throw new UnsupportedOperationException();
     }
+
+
+//throw new UnsupportedOperationException(); //TODO  2a partial
 
     /**
      * Parses a declaration statement from the {@code statement} rule. This
@@ -95,7 +101,9 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+
+        throw new UnsupportedOperationException(); //Expected semicolon
     }
 
     /**
@@ -147,14 +155,30 @@ public final class Parser {
      * Parses the {@code expression} rule.
      */
     public Ast.Expression parseExpression() throws ParseException {
-        return parseLogicalExpression(); //TODO 2a
+        //return parseLogicalExpression(); //TODO 2a
+        try {
+            return parseLogicalExpression();
+        } catch (ParseException p) {
+            throw new ParseException(p.getMessage(), p.getIndex());
+        }
     }
 
     /**
      * Parses the {@code logical-expression} rule.
      */
     public Ast.Expression parseLogicalExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2a
+        //throw new UnsupportedOperationException(); //TODO 2a
+        try {
+            Ast.Expression output = parseComparisonExpression();
+            while (match("AND") || match("OR")) {
+                String operation = tokens.get(-1).getLiteral();
+                Ast.Expression rightExpression = parseComparisonExpression();
+                output = new Ast.Expression.Binary(operation, output, rightExpression);
+            }
+            return output;
+        } catch(ParseException p) {
+            throw new ParseException(p.getMessage(), p.getIndex());
+        }
     }
 
     /**
