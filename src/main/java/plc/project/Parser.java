@@ -185,7 +185,18 @@ public final class Parser {
      * Parses the {@code comparison-expression} rule.
      */
     public Ast.Expression parseComparisonExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2a
+        //throw new UnsupportedOperationException(); //TODO 2a
+        try {
+            Ast.Expression output = parseAdditiveExpression();
+            while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
+                String operation = tokens.get(-1).getLiteral();
+                Ast.Expression rightExpr = parseComparisonExpression();
+                output = new Ast.Expression.Binary(operation, output, rightExpr);
+            }
+            return output;
+        } catch(ParseException p) {
+            throw new ParseException(p.getMessage(), p.getIndex());
+        }
     }
 
     /**
