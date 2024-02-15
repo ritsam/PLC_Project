@@ -32,14 +32,12 @@ public final class Parser {
         throw new UnsupportedOperationException(); //TODO
     }
 
-
     /**
      * Parses the {@code global} rule. This method should only be called if the
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
-    public Ast.Global parseGlobal() {
-
-        throw new UnsupportedOperationException(); //idk
+    public Ast.Global parseGlobal() throws ParseException {
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -88,12 +86,8 @@ public final class Parser {
      * statement, then it is an expression/assignment statement.
      */
     public Ast.Statement parseStatement() throws ParseException {
-
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(); //TODO  2a partial
     }
-
-
-//throw new UnsupportedOperationException(); //TODO  2a partial
 
     /**
      * Parses a declaration statement from the {@code statement} rule. This
@@ -101,9 +95,7 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
-
-        throw new UnsupportedOperationException(); //Expected semicolon
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -155,7 +147,7 @@ public final class Parser {
      * Parses the {@code expression} rule.
      */
     public Ast.Expression parseExpression() throws ParseException {
-        //return parseLogicalExpression(); //TODO 2a
+         //TODO 2a
         try {
             return parseLogicalExpression();
         } catch (ParseException p) {
@@ -278,7 +270,21 @@ public final class Parser {
      * {@code peek(Token.Type.IDENTIFIER)} and {@code peek("literal")}.
      */
     private boolean peek(Object... patterns) {
-        throw new UnsupportedOperationException(); //TODO (in lecture)
+        for (int i = 0; i < patterns.length; i++) {
+            if (!tokens.has(i)) {
+                return false;
+            }else if (patterns[i] instanceof Token.Type) {
+                if (patterns[i] != tokens.get(i).getType()) {
+                    return false;
+                }
+            } else if (patterns[i] instanceof String) {
+                if (!patterns[i].equals(tokens.get(i).getLiteral())) {
+                    return false;
+                }
+            } else
+                throw new AssertionError("Invalid pattern object: " + patterns[i].getClass());
+        }
+        return true;
     }
 
     /**
@@ -286,7 +292,12 @@ public final class Parser {
      * and advances the token stream.
      */
     private boolean match(Object... patterns) {
-        throw new UnsupportedOperationException(); //TODO (in lecture)
+        boolean peek = peek(patterns);
+        if (peek) {
+            for (int i = 0; i < patterns.length; i++)
+                tokens.advance();
+        }
+        return peek;
     }
 
     private static final class TokenStream {
