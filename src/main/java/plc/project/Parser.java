@@ -86,7 +86,19 @@ public final class Parser {
      * statement, then it is an expression/assignment statement.
      */
     public Ast.Statement parseStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO  2a partial
+        //TODO  2a partial expression ('=' expression)? ';' options: =; or ;
+        Ast.Expression expression=parseExpression();
+        if(match("=")){
+            Ast.Expression right = parseExpression();
+            match(";"); //both = and ;
+            return new Ast.Statement.Assignment(expression,right);
+        }
+        else if(match(";")){
+            return new Ast.Statement.Expression(expression);
+        }
+        else{
+            throw new ParseException("Expected '=' or ';'", tokens.get(0).getIndex());
+        }
     }
 
     /**
@@ -195,26 +207,26 @@ public final class Parser {
      * Parses the {@code additive-expression} rule.
      */
     public Ast.Expression parseAdditiveExpression() throws ParseException {
-        Ast.Expression left=parseMultiplicativeExpression(); //TODO 2a
+        Ast.Expression expression=parseMultiplicativeExpression(); //TODO 2a
         while(match("+")||match("-")){
-            String add= tokens.get(0).getLiteral();
+            String add= tokens.get(0).getLiteral(); //store operator
             Ast.Expression right=parseMultiplicativeExpression();
-            left=new Ast.Expression.Binary(add,left,right);
+            expression=new Ast.Expression.Binary(add,expression,right);
         }
-        return left;
+        return expression;
     }
 
     /**
      * Parses the {@code multiplicative-expression} rule.
      */
     public Ast.Expression parseMultiplicativeExpression() throws ParseException {
-        Ast.Expression left=parsePrimaryExpression(); //TODO 2a
+        Ast.Expression expression=parsePrimaryExpression(); //TODO 2a
         while(match("/")||match("*")){
             String multi= tokens.get(0).getLiteral();
             Ast.Expression right=parseAdditiveExpression();
-            left=new Ast.Expression.Binary(multi,left,right);
+            expression=new Ast.Expression.Binary(multi,expression,right);
         }
-        return left;
+        return expression;
     }
 
     /**
@@ -232,7 +244,6 @@ public final class Parser {
             return new Ast.Expression.Literal(false);
         } else if (match(Token.Type.INTEGER)) {
             BigInteger in = new BigInteger(tokens.get(0).getLiteral());
-            ;
             return new Ast.Expression.Literal(in);
         } else if (match(Token.Type.DECIMAL)) {
             BigDecimal dec = new BigDecimal(tokens.get(0).getLiteral());
