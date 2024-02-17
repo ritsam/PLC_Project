@@ -163,7 +163,7 @@ public final class Parser {
      * Parses the {@code expression} rule.
      */
     public Ast.Expression parseExpression() throws ParseException {
-         //TODO 2a
+        //TODO 2a
         try {
             return parseLogicalExpression();
         } catch (ParseException p) {
@@ -190,23 +190,17 @@ public final class Parser {
      */
     public Ast.Expression parseComparisonExpression() throws ParseException {
         //throw new UnsupportedOperationException(); //TODO 2a
-        Ast.Expression left = parseAdditiveExpression();
-        if (left == null) {
-            throw new UnsupportedOperationException();
-        }
-        while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
-            String operator = tokens.get(-1).getLiteral();
-            Ast.Expression right = parseAdditiveExpression();
-
-            if (right == null) {
-                throw new UnsupportedOperationException();
+        try {
+            Ast.Expression output = parseAdditiveExpression();
+            while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
+                String operation = tokens.get(-1).getLiteral();
+                Ast.Expression rightExpr = parseComparisonExpression();
+                output = new Ast.Expression.Binary(operation, output, rightExpr);
             }
-
-            left = new Ast.Expression.Binary(operator, left, right);
+            return output;
+        } catch(ParseException p) {
+            throw new ParseException(p.getMessage(), p.getIndex());
         }
-
-        return left;
-    }
     }
 
     /**
