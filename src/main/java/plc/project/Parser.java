@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList; //new
+import java.util.Optional; //new
 /**
  * The parser takes the sequence of tokens emitted by the lexer and turns that
  * into a structured representation of the program, called the Abstract Syntax
@@ -269,7 +270,8 @@ public final class Parser {
         }
         else if (peek(Token.Type.IDENTIFIER)) {
             String id = tokens.get(0).getLiteral();
-            if (match("(")) { // Function call
+            match(Token.Type.IDENTIFIER);
+            if (match("(")) {
                 List<Ast.Expression> arguments = new ArrayList<>();
                 if (!match(")")) {
                     do {
@@ -279,15 +281,18 @@ public final class Parser {
                 }
                 return new Ast.Expression.Function(id, arguments);
             }
+            // check for access to array, uses Optional
+            if (match("[")) {
+                Ast.Expression index = parseExpression();
+                match("]");
+                return new Ast.Expression.Access(Optional.of(index), id);
+            }
+            return new Ast.Expression.Access(Optional.empty(), id);
         }
-        /*else if (peek(Token.Type.IDENTIFIER)) {
-            String id = tokens.get(0).getLiteral();
-            //...continue
+        throw new ParseException("Unexpected token: " + tokens.get(0).getType(), tokens.get(0).getIndex());
 
-        }*/
-
-        BigDecimal dec = new BigDecimal(tokens.get(0).getLiteral());
-        return new Ast.Expression.Literal(dec);
+        //BigDecimal dec = new BigDecimal(tokens.get(0).getLiteral());
+        //return new Ast.Expression.Literal(dec);
     }
 
     /**
