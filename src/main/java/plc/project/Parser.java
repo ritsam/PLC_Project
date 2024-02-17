@@ -152,7 +152,11 @@ public final class Parser {
      * {@code RETURN}.
      */
     public Ast.Statement.Return parseReturnStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        match("RETURN");
+        Ast.Expression expression = parseExpression();
+        match(";");
+        return new Ast.Statement.Return(expression);
     }
 
     /**
@@ -172,17 +176,13 @@ public final class Parser {
      */
     public Ast.Expression parseLogicalExpression() throws ParseException {
         //throw new UnsupportedOperationException(); //TODO 2a
-        try {
-            Ast.Expression output = parseComparisonExpression();
-            while (match("AND") || match("OR")) {
-                String operation = tokens.get(-1).getLiteral();
-                Ast.Expression rightExpression = parseComparisonExpression();
-                output = new Ast.Expression.Binary(operation, output, rightExpression);
-            }
-            return output;
-        } catch(ParseException p) {
-            throw new ParseException(p.getMessage(), p.getIndex());
+        Ast.Expression currentExpression = parseComparisonExpression();
+        while (match("AND") || match("OR")) {
+            String operation = tokens.get(-1).getLiteral();
+            Ast.Expression rightExpression = parseComparisonExpression();
+            currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpression);
         }
+        return currentExpression;
     }
 
     /**
@@ -190,17 +190,23 @@ public final class Parser {
      */
     public Ast.Expression parseComparisonExpression() throws ParseException {
         //throw new UnsupportedOperationException(); //TODO 2a
-        try {
-            Ast.Expression output = parseAdditiveExpression();
-            while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
-                String operation = tokens.get(-1).getLiteral();
-                Ast.Expression rightExpr = parseComparisonExpression();
-                output = new Ast.Expression.Binary(operation, output, rightExpr);
-            }
-            return output;
-        } catch(ParseException p) {
-            throw new ParseException(p.getMessage(), p.getIndex());
+        Ast.Expression left = parseAdditiveExpression();
+        if (left == null) {
+            throw new UnsupportedOperationException();
         }
+        while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
+            String operator = tokens.get(-1).getLiteral();
+            Ast.Expression right = parseAdditiveExpression();
+
+            if (right == null) {
+                throw new UnsupportedOperationException();
+            }
+
+            left = new Ast.Expression.Binary(operator, left, right);
+        }
+
+        return left;
+    }
     }
 
     /**
