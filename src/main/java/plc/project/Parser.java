@@ -3,7 +3,7 @@ package plc.project;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
-
+import java.util.ArrayList; //new
 /**
  * The parser takes the sequence of tokens emitted by the lexer and turns that
  * into a structured representation of the program, called the Abstract Syntax
@@ -262,10 +262,30 @@ public final class Parser {
             str = str.replace("\\\"", "\"");
             str = str.substring(1, str.length() - 1);
             return new Ast.Expression.Literal(str);
-        } else if (peek(Token.Type.IDENTIFIER)) {
+        } else if (match("(")) {
+            Ast.Expression expression = parseExpression();
+            match(")");
+            return expression;
+        }
+        else if (peek(Token.Type.IDENTIFIER)) {
+            String id = tokens.get(0).getLiteral();
+            if (match("(")) { // Function call
+                List<Ast.Expression> arguments = new ArrayList<>();
+                if (!match(")")) {
+                    do {
+                        arguments.add(parseExpression());
+                    } while (match(","));
+                    match(")");
+                }
+                return new Ast.Expression.Function(id, arguments);
+            }
+        }
+        /*else if (peek(Token.Type.IDENTIFIER)) {
             String id = tokens.get(0).getLiteral();
             //...continue
-        }
+
+        }*/
+
         BigDecimal dec = new BigDecimal(tokens.get(0).getLiteral());
         return new Ast.Expression.Literal(dec);
     }
