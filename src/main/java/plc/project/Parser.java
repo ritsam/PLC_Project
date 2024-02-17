@@ -178,8 +178,8 @@ public final class Parser {
     public Ast.Expression parseLogicalExpression() throws ParseException {
         //throw new UnsupportedOperationException(); //TODO 2a
         Ast.Expression currentExpression = parseComparisonExpression();
-        while (match("AND") || match("OR")) {
-            String operation = tokens.get(0).getLiteral();
+        while (match("&&") || match("||")) {
+            String operation = tokens.get(-1).getLiteral();
             Ast.Expression rightExpression = parseComparisonExpression();
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpression);
         }
@@ -286,8 +286,11 @@ public final class Parser {
             // check for access to array, uses Optional
             if (match("[")) {
                 Ast.Expression index = parseExpression();
-                match("]");
-                return new Ast.Expression.Access(Optional.of(index), id);
+                if (match("]")) {
+                    return new Ast.Expression.Access(Optional.of(index), id); //error?
+                } else {
+                    throw new ParseException("Expected closing bracket for array access", tokens.get(-1).getIndex());
+                }
             }
             return new Ast.Expression.Access(Optional.empty(), id);
         }
