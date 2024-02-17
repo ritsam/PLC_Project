@@ -167,8 +167,8 @@ public final class Parser {
         //TODO 2a
         try {
             return parseLogicalExpression();
-        } catch (ParseException p) {
-            throw new ParseException(p.getMessage(), p.getIndex());
+        } catch (ParseException pe) {
+            throw new ParseException(pe.getMessage(), pe.getIndex());
         }
     }
 
@@ -179,7 +179,7 @@ public final class Parser {
         //throw new UnsupportedOperationException(); //TODO 2a
         Ast.Expression currentExpression = parseComparisonExpression();
         while (match("AND") || match("OR")) {
-            String operation = tokens.get(-1).getLiteral();
+            String operation = tokens.get(0).getLiteral();
             Ast.Expression rightExpression = parseComparisonExpression();
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpression);
         }
@@ -264,9 +264,11 @@ public final class Parser {
             str = str.substring(1, str.length() - 1);
             return new Ast.Expression.Literal(str);
         } else if (match("(")) {
-            Ast.Expression expression = parseExpression();
-            match(")");
-            return expression;
+            Ast.Expression.Group expression = new Ast.Expression.Group(parseExpression());
+            if (match(")")) {
+                return expression;
+            }
+            throw new ParseException("Need close parenthesis", tokens.get(-1).getIndex());
         }
         else if (peek(Token.Type.IDENTIFIER)) {
             String id = tokens.get(0).getLiteral();
