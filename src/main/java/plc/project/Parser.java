@@ -144,7 +144,12 @@ public final class Parser {
      * {@code WHILE}.
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        match("WHILE");
+        Ast.Expression condition = parseExpression();
+        // parse the body of while loop
+        List<Ast.Statement> body = parseBlock();
+        return new Ast.Statement.While(condition, body);
     }
 
     /**
@@ -152,8 +157,7 @@ public final class Parser {
      * should only be called if the next tokens start a return statement, aka
      * {@code RETURN}.
      */
-    public Ast.Statement.Return parseReturnStatement() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
+    public Ast.Statement.Return parseReturnStatement() throws ParseException { //TODO
         match("RETURN");
         Ast.Expression expression = parseExpression();
         match(";");
@@ -163,8 +167,7 @@ public final class Parser {
     /**
      * Parses the {@code expression} rule.
      */
-    public Ast.Expression parseExpression() throws ParseException {
-        //TODO 2a
+    public Ast.Expression parseExpression() throws ParseException { //TODO 2a
         return parseLogicalExpression();
     }
 
