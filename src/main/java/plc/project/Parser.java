@@ -165,11 +165,7 @@ public final class Parser {
      */
     public Ast.Expression parseExpression() throws ParseException {
         //TODO 2a
-        try {
-            return parseLogicalExpression();
-        } catch (ParseException pe) {
-            throw new ParseException(pe.getMessage(), pe.getIndex());
-        }
+        return parseLogicalExpression();
     }
 
     /**
@@ -191,17 +187,13 @@ public final class Parser {
      */
     public Ast.Expression parseComparisonExpression() throws ParseException {
         //throw new UnsupportedOperationException(); //TODO 2a
-        try {
-            Ast.Expression output = parseAdditiveExpression();
-            while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
-                String operation = tokens.get(-1).getLiteral();
-                Ast.Expression rightExpr = parseComparisonExpression();
-                output = new Ast.Expression.Binary(operation, output, rightExpr);
-            }
-            return output;
-        } catch(ParseException p) {
-            throw new ParseException(p.getMessage(), p.getIndex());
+        Ast.Expression currentExpression = parseAdditiveExpression();
+        while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
+            String operation = tokens.get(-1).getLiteral();
+            Ast.Expression rightExpr = parseComparisonExpression();
+            currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpr);
         }
+        return currentExpression;
     }
 
     /**
