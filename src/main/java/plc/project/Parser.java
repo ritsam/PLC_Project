@@ -98,7 +98,7 @@ public final class Parser {
             return new Ast.Statement.Expression(expression);
         }
         else{
-            throw new ParseException("Expected '=' or ';'", tokens.get(0).getIndex());
+            throw new ParseException("Expected '=' or ';'", tokens.get(-1).getIndex());
         }
     }
 
@@ -210,7 +210,7 @@ public final class Parser {
     public Ast.Expression parseAdditiveExpression() throws ParseException {
         Ast.Expression expression=parseMultiplicativeExpression(); //TODO 2a
         while(match("+")||match("-")){
-            String add= tokens.get(0).getLiteral(); //store operator
+            String add= tokens.get(-1).getLiteral(); //store operator
             Ast.Expression right=parseMultiplicativeExpression();
             expression=new Ast.Expression.Binary(add,expression,right);
         }
@@ -223,7 +223,7 @@ public final class Parser {
     public Ast.Expression parseMultiplicativeExpression() throws ParseException {
         Ast.Expression expression=parsePrimaryExpression(); //TODO 2a
         while(match("/")||match("*")){
-            String multi= tokens.get(0).getLiteral();
+            String multi= tokens.get(-1).getLiteral();
             Ast.Expression right=parseAdditiveExpression();
             expression=new Ast.Expression.Binary(multi,expression,right);
         }
@@ -244,16 +244,16 @@ public final class Parser {
         } else if (match("FALSE")) {
             return new Ast.Expression.Literal(false);
         } else if (match(Token.Type.INTEGER)) {
-            BigInteger in = new BigInteger(tokens.get(0).getLiteral());
+            BigInteger in = new BigInteger(tokens.get(-1).getLiteral());
             return new Ast.Expression.Literal(in);
         } else if (match(Token.Type.DECIMAL)) {
-            BigDecimal dec = new BigDecimal(tokens.get(0).getLiteral());
+            BigDecimal dec = new BigDecimal(tokens.get(-1).getLiteral());
             return new Ast.Expression.Literal(dec);
         } else if (match(Token.Type.CHARACTER)) {
-            String ch = tokens.get(0).getLiteral();
+            String ch = tokens.get(-1).getLiteral();
             return new Ast.Expression.Literal(ch.charAt(1));
         } else if (match(Token.Type.STRING)) {
-            String str = tokens.get(0).getLiteral();
+            String str = tokens.get(-1).getLiteral();
             str = str.replace("\\n", "\n");
             str = str.replace("\\t", "\t");
             str = str.replace("\\b", "\b");
@@ -290,9 +290,6 @@ public final class Parser {
             return new Ast.Expression.Access(Optional.empty(), id);
         }
         throw new ParseException("Unexpected token: " + tokens.get(0).getType(), tokens.get(0).getIndex());
-
-        //BigDecimal dec = new BigDecimal(tokens.get(0).getLiteral());
-        //return new Ast.Expression.Literal(dec);
     }
 
     /**
