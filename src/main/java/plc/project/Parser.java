@@ -108,7 +108,19 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        match("LET");
+
+        if (!match(Token.Type.IDENTIFIER)){
+            throw new ParseException("Expected Identifier", -1);
+
+        }
+        String name = tokens.get(-1).getLiteral();
+        Optional<Ast.Expression> value = Optional.empty();
+        if (match("=")){
+            value = Optional.of(parseExpression());
+        }
+        return new Ast.Statement.Declaration(name, value);
     }
 
     /**
