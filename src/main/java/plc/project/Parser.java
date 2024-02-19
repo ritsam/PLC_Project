@@ -30,7 +30,21 @@ public final class Parser {
      * Parses the {@code source} rule.
      */
     public Ast.Source parseSource() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+         //TODO 2b
+       try{
+        List<Ast.Global> g = new ArrayList<>();
+        List<Ast.Function> f= new ArrayList<>();
+        while (tokens.has(0)) {
+            if (match("LIST") || match("VAR") || match("VAL")) {
+                g.add(parseGlobal());
+            } else if (match("FUN")) {
+                f.add(parseFunction());
+            }
+        }
+        return new Ast.Source(g, f);
+       } catch (ParseException pe) {
+           throw new ParseException(pe.getMessage(), pe.getIndex());
+       }
     }
 
     /**
@@ -38,7 +52,7 @@ public final class Parser {
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
     public Ast.Global parseGlobal() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -46,7 +60,7 @@ public final class Parser {
      * next token declares a list, aka {@code LIST}.
      */
     public Ast.Global parseList() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -54,7 +68,21 @@ public final class Parser {
      * next token declares a mutable global variable, aka {@code VAR}.
      */
     public Ast.Global parseMutable() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO 2b //'VAR' identifier ('=' expression)? //do parseException if not there
+        match("VAR");
+        if (match(Token.Type.IDENTIFIER)) {
+            String name = tokens.get(-1).getLiteral();
+            if (match("=")) {
+                Ast.Expression expression = parseExpression();
+                return  new Ast.Global(name, Optional.of(expression)); //??
+            }
+            else {
+                throw new ParseException("no = and expression" + " INDEX:" + tokens.get(-1).getIndex(), tokens.get(-1).getIndex());
+                }
+        }
+        else {
+            throw new ParseException("no VAR" + " INDEX:" + tokens.get(-1).getIndex(), tokens.get(-1).getIndex());
+        }
     }
 
     /**
@@ -62,7 +90,7 @@ public final class Parser {
      * next token declares an immutable global variable, aka {@code VAL}.
      */
     public Ast.Global parseImmutable() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -70,7 +98,7 @@ public final class Parser {
      * next tokens start a method, aka {@code FUN}.
      */
     public Ast.Function parseFunction() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -78,7 +106,7 @@ public final class Parser {
      * preceding token indicates the opening a block of statements.
      */
     public List<Ast.Statement> parseBlock() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -87,18 +115,32 @@ public final class Parser {
      * statement, then it is an expression/assignment statement.
      */
     public Ast.Statement parseStatement() throws ParseException {
-        //TODO  2a partial expression ('=' expression)? ';' options: =; or ;
-        Ast.Expression expression=parseExpression();
-        if(match("=")){
-            Ast.Expression right = parseExpression();
-            match(";"); //both = and ;
-            return new Ast.Statement.Assignment(expression,right);
-        }
-        else if(match(";")){
-            return new Ast.Statement.Expression(expression);
-        }
-        else{
-            throw new ParseException("Expected '=' or ';'", tokens.get(-1).getIndex());
+        //TODO  2b
+        try {
+            if (match("LET")) {
+                return parseDeclarationStatement();
+            } else if (match("SWITCH")) {
+                return parseSwitchStatement();
+            } else if (match("IF")) {
+                return parseIfStatement();
+            } else if (match("WHILE")) {
+                return parseWhileStatement();
+            } else if (match("RETURN")) {
+                return parseReturnStatement();
+            } else {
+                Ast.Expression expression = parseExpression();
+                if (match("=")) {
+                    Ast.Expression right = parseExpression();
+                    match(";"); //both = and ;
+                    return new Ast.Statement.Assignment(expression, right);
+                } else if (match(";")) {
+                    return new Ast.Statement.Expression(expression);
+                } else {
+                    throw new ParseException("Expected '=' or ';'", tokens.get(-1).getIndex());
+                }
+            }
+        }catch (ParseException p) {
+            throw new ParseException(p.getMessage(), p.getIndex());
         }
     }
 
@@ -108,7 +150,26 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO 2b
+        //'LET' identifier ('=' expression)? ';'
+        if (match(Token.Type.IDENTIFIER)) {
+            String id = tokens.get(-1).getLiteral();
+            //Optional<String> type = Optional.empty();
+            if (match("=")) {
+                Ast.Expression right = parseExpression();
+                if (match(";")) {
+                    return new Ast.Statement.Declaration(id, type, Optional.of(right));
+                }
+            } else {
+                if (match(";")) {
+                    return new Ast.Statement.Declaration(id, type, Optional.empty());
+                }
+            }
+        }
+        else {
+            throw new ParseException("no let" + " INDEX:" + tokens.get(0).getIndex(), tokens.get(-1).getIndex());
+        }
+        throw new ParseException("no ;" + " INDEX:" + tokens.get(-1).getIndex(), tokens.get(-1).getIndex());;
     }
 
     /**
@@ -117,7 +178,7 @@ public final class Parser {
      * {@code IF}.
      */
     public Ast.Statement.If parseIfStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -126,7 +187,7 @@ public final class Parser {
      * {@code SWITCH}.
      */
     public Ast.Statement.Switch parseSwitchStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -135,7 +196,7 @@ public final class Parser {
      * default block of a switch statement, aka {@code CASE} or {@code DEFAULT}.
      */
     public Ast.Statement.Case parseCaseStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -144,7 +205,7 @@ public final class Parser {
      * {@code WHILE}.
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -153,11 +214,15 @@ public final class Parser {
      * {@code RETURN}.
      */
     public Ast.Statement.Return parseReturnStatement() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO 2b
         match("RETURN");
         Ast.Expression expression = parseExpression();
-        match(";");
-        return new Ast.Statement.Return(expression);
+        if(match(";")) {
+            return new Ast.Statement.Return(expression);
+        }
+        else{
+            throw new ParseException("no ;" + " INDEX:" + tokens.get(-1).getIndex(), tokens.get(-1).getIndex());
+        }
     }
 
     /**
