@@ -30,7 +30,21 @@ public final class Parser {
      * Parses the {@code source} rule.
      */
     public Ast.Source parseSource() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO
+        try {
+                  List<Ast.Global> g = new ArrayList<>();
+                  List<Ast.Function> f = new ArrayList<>();
+                  while (tokens.has(0)) {
+                      if (match("LIST") || match("VAR") ||match("VAL")) {
+                          g.add(parseGlobal());
+                      } else if (match("FUN")) {
+                          f.add(parseFunction());
+                      }
+                  }
+                  return new Ast.Source(g,f);
+              } catch (ParseException pe) {
+                  throw new ParseException(pe.getMessage(), pe.getIndex());
+             }
     }
 
     /**
