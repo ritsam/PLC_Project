@@ -31,7 +31,6 @@ public final class Parser {
      */
     public Ast.Source parseSource() throws ParseException {
         throw new UnsupportedOperationException(); //TODO
-
     }
 
     /**
@@ -58,7 +57,7 @@ public final class Parser {
         //throw new UnsupportedOperationException(); //TODO
         match("VAR");
         if (!match(Token.Type.IDENTIFIER)) {
-            throw new ParseException("Expected identifier after 'VAR'", tokens.get(-1).getIndex());
+            throw new ParseException("Expected identifier after VAR", tokens.get(-1).getIndex());
         }
         String identifier = tokens.get(-1).getLiteral();
         Optional<Ast.Expression> value = Optional.empty();
@@ -66,7 +65,7 @@ public final class Parser {
         if (match("=")) {
             value = Optional.of(parseExpression());
         }
-        match(";"); // Consume the semicolon
+        match(";");
         return new Ast.Global(identifier, true, value);
     }
 
@@ -75,7 +74,22 @@ public final class Parser {
      * next token declares an immutable global variable, aka {@code VAL}.
      */
     public Ast.Global parseImmutable() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        match("VAL");
+        if (!match(Token.Type.IDENTIFIER)) {
+            throw new ParseException("Expected identifier after VAL", tokens.get(-1).getIndex());
+        }
+        String identifier = tokens.get(-1).getLiteral();
+        Optional<Ast.Expression> value = Optional.empty();
+        // check for optional expression after =
+        if (match("=")) {
+            value = Optional.of(parseExpression());
+        }
+        else {
+            throw new ParseException("Expected = after VAL identifier", tokens.get(-1).getIndex());
+        }
+        match(";");
+        return new Ast.Global(identifier, false, value);
     }
 
     /**
