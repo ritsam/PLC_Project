@@ -324,6 +324,7 @@ public final class Parser {
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
         //TODO  Missing END: Unexpected java.lang.IndexOutOfBoundsException
+        try {
         match("WHILE");
         Ast.Expression condition = parseExpression();
         if(peek("DO")){
@@ -332,6 +333,10 @@ public final class Parser {
         List<Ast.Statement> statements = parseBlock();
         match("END");
         return new Ast.Statement.While(condition, statements);
+        }
+        catch (ParseException e) {
+            throw new ParseException("Error in while" + e.getMessage(), e.getIndex());
+        }
     }
 
     /**
