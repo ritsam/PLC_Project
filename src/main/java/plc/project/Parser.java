@@ -30,7 +30,21 @@ public final class Parser {
      * Parses the {@code source} rule.
      */
     public Ast.Source parseSource() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO 2b
+        try {
+                 List<Ast.Global> g = new ArrayList<>();
+                  List<Ast.Function> f = new ArrayList<>();
+                  while (tokens.has(0)) {
+                      if (match("LIST") || match("VAR") ||match("VAL")) {
+                          g.add(parseGlobal());
+                      } else if (match("FUN")) {
+                          f.add(parseFunction());
+                      }
+                  }
+                  return new Ast.Source(g,f);
+              } catch (ParseException pe) {
+                  throw new ParseException(pe.getMessage(), pe.getIndex());
+              }
     }
 
     /**
@@ -38,7 +52,7 @@ public final class Parser {
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
     public Ast.Global parseGlobal() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -46,7 +60,7 @@ public final class Parser {
      * next token declares a list, aka {@code LIST}.
      */
     public Ast.Global parseList() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -97,7 +111,7 @@ public final class Parser {
      * next tokens start a method, aka {@code FUN}.
      */
     public Ast.Function parseFunction() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -105,7 +119,7 @@ public final class Parser {
      * preceding token indicates the opening a block of statements.
      */
     public List<Ast.Statement> parseBlock() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -149,7 +163,7 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO 2b
         // 'LET' identifier ('=' expression)? ';'
         match("LET");
         if (!match(Token.Type.IDENTIFIER)){
@@ -182,7 +196,7 @@ public final class Parser {
      * {@code IF}.
      */
     public Ast.Statement.If parseIfStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
@@ -191,7 +205,7 @@ public final class Parser {
      * {@code SWITCH}.
      */
     public Ast.Statement.Switch parseSwitchStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO 2b
     }
 
     /**
