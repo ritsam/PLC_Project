@@ -31,6 +31,7 @@ public final class Parser {
      */
     public Ast.Source parseSource() throws ParseException {
         throw new UnsupportedOperationException(); //TODO
+
     }
 
     /**
@@ -54,7 +55,19 @@ public final class Parser {
      * next token declares a mutable global variable, aka {@code VAR}.
      */
     public Ast.Global parseMutable() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        match("VAR");
+        if (!match(Token.Type.IDENTIFIER)) {
+            throw new ParseException("Expected identifier after 'VAR'", tokens.get(-1).getIndex());
+        }
+        String identifier = tokens.get(-1).getLiteral();
+        Optional<Ast.Expression> value = Optional.empty();
+        // check for optional expression after =
+        if (match("=")) {
+            value = Optional.of(parseExpression());
+        }
+        match(";"); // Consume the semicolon
+        return new Ast.Global(identifier, true, value);
     }
 
     /**
