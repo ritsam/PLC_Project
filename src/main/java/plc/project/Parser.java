@@ -275,9 +275,31 @@ public final class Parser {
      * {@code SWITCH}.
      */
     public Ast.Statement.Switch parseSwitchStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO
         //'SWITCH' expression ('CASE' expression ':' block)* 'DEFAULT' block 'END'
+        try {
+            match("SWITCH");
+            Ast.Expression expr = parseExpression();
+            List<Ast.Statement.Case> cases = new ArrayList<>();
+
+            while (match("CASE")) {
+                Ast.Expression caseExpr = parseExpression();
+                match(":");
+                List<Ast.Statement> caseBlock = parseBlock();
+                cases.add(new Ast.Statement.Case(Optional.of(caseExpr), caseBlock));
+            }
+            List<Ast.Statement> def = new ArrayList<>();
+            if (match("DEFAULT")) {
+                def = parseBlock();
+            }
+            match("END");
+            return new Ast.Statement.Switch(expr, cases);
+        }
+        catch (ParseException e) {
+            throw new ParseException("Error switch statement: " + e.getMessage(), tokens.get(-1).getIndex());
+        }
     }
+
 
     /**
      * Parses a case or default statement block from the {@code switch} rule.
