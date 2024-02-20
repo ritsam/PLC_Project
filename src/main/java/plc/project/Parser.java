@@ -176,8 +176,13 @@ public final class Parser {
     public List<Ast.Statement> parseBlock() throws ParseException {
         //throw new UnsupportedOperationException(); //TODO
         List<Ast.Statement> statements = new ArrayList<>();
-        while (!match("}")) {
-            statements.add(parseStatement());
+        while (!match("END")) {
+            int start = tokens.index;
+            Ast.Statement statement = parseStatement();
+            if (tokens.index == start) {
+                throw new ParseException("Potential Error Encountered", tokens.get(start).getIndex());
+            }
+            statements.add(statement);
         }
         return statements;
     }
@@ -276,9 +281,12 @@ public final class Parser {
         //throw new UnsupportedOperationException(); //TODO
         match("WHILE");
         Ast.Expression condition = parseExpression();
-        // parse the body of while loop
-        List<Ast.Statement> body = parseBlock();
-        return new Ast.Statement.While(condition, body);
+        if(peek("DO")){
+            match("DO");
+        }
+        List<Ast.Statement> statements = parseBlock();
+        match("END");
+        return new Ast.Statement.While(condition, statements);
     }
 
     /**
