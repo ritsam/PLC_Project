@@ -69,7 +69,29 @@ public final class Parser {
      * next token declares a list, aka {@code LIST}.
      */
     public Ast.Global parseList() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        // 'LIST' identifier '=' '[' expression (',' expression)* ']'
+         //TODO
+        match("LIST");
+        if (!match(Token.Type.IDENTIFIER)) {
+            throw new ParseException("Expected identifier after LIST", tokens.get(-1).getIndex());
+        }
+        String listName = tokens.get(-1).getLiteral(); //identifier
+        List<Ast.Expression> exprs = new ArrayList<>(); //??
+        Optional<Ast.Expression> value = Optional.empty(); //??
+        if (match("=")) {
+            value = Optional.of(parseExpression()); //?
+        }
+        do {
+            exprs.add(parseExpression());
+        }
+        while (match(","));
+            if (!match("]")) {
+                throw new ParseException("Expected ]", tokens.get(-1).getIndex());
+            }
+            if (!match(";")) {
+                throw new ParseException("Expected ;", tokens.get(-1).getIndex());
+           }
+        return new Ast.Global(listName, false, value); //??
     }
 
     /**
