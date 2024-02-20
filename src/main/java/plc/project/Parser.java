@@ -53,11 +53,12 @@ public final class Parser {
      */
     public Ast.Global parseGlobal() throws ParseException {
          //TODO --Unexpected ParseException (Expected global declaration)
-        if (match("LIST")) {
+        //changed match to peek?
+        if (peek("LIST")) {
             return parseList();
-        } else if (match("VAR")) {
+        } else if (peek("VAR")) {
             return parseMutable();
-        } else if (match("VAL")) {
+        } else if (peek("VAL")) {
             return parseImmutable();
         } else {
             throw new ParseException("Expected global declaration", tokens.get(-1).getIndex());
