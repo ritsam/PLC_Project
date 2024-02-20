@@ -97,7 +97,31 @@ public final class Parser {
      * next tokens start a method, aka {@code FUN}.
      */
     public Ast.Function parseFunction() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        match("FUN");
+        if (!match(Token.Type.IDENTIFIER)) {
+            throw new ParseException("Expected identifier after FUN", tokens.get(-1).getIndex());
+        }
+        String functionName = tokens.get(-1).getLiteral();
+        List<String> parameters = new ArrayList<>();
+        //parameters
+        if (match("(")) {
+            // check for parameters
+            if (!match(")")) {
+                do {
+                    if (!match(Token.Type.IDENTIFIER)) {
+                        throw new ParseException("Expected identifier for function parameter", tokens.get(-1).getIndex());
+                    }
+                    parameters.add(tokens.get(-1).getLiteral());
+                } while (match(","));
+                match(")");
+            }
+        }
+        match("DO");
+        // parse body of function
+        List<Ast.Statement> statements = parseBlock();
+        match("END");
+        return new Ast.Function(functionName, parameters, statements);
     }
 
     /**
@@ -105,7 +129,12 @@ public final class Parser {
      * preceding token indicates the opening a block of statements.
      */
     public List<Ast.Statement> parseBlock() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        List<Ast.Statement> statements = new ArrayList<>();
+        while (!match("}")) {
+            statements.add(parseStatement());
+        }
+        return statements;
     }
 
     /**
