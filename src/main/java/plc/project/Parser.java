@@ -52,7 +52,16 @@ public final class Parser {
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
     public Ast.Global parseGlobal() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+         //TODO
+        if (match("LIST")) {
+            return parseList();
+        } else if (match("VAR")) {
+            return parseMutable();
+        } else if (match("VAL")) {
+            return parseImmutable();
+        } else {
+            throw new ParseException("Expected global declaration", tokens.get(-1).getIndex());
+        }
     }
 
     /**
@@ -192,31 +201,21 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
+         //TODO
         // 'LET' identifier ('=' expression)? ';'
         match("LET");
         if (!match(Token.Type.IDENTIFIER)){
             throw new ParseException("Expected Identifier", -1);
         }
-        String name = tokens.get(-1).getLiteral();
+        String name = tokens.get(-1).getLiteral(); //identifier
         Optional<Ast.Expression> value = Optional.empty();
-        Optional<String> type = Optional.empty();
         if (match("=")) {
-            Ast.Expression right = parseExpression();
-            if (match(";")) {
-                value = Optional.of(parseExpression());
-                return new Ast.Statement.Declaration(name, value);
-            }
+            value = Optional.of(parseExpression());
         }
-        else {
-            if (match(";")) {
-                return new Ast.Statement.Declaration(name, value);
-            }
-            else{
-                throw new ParseException("no ;" + " INDEX:" + tokens.get(-1).getIndex(), tokens.get(-1).getIndex());
-                }
+        if (!match(";")) {
+            throw new ParseException("Expected ';'", tokens.get(-1).getIndex());
         }
-        return new Ast.Statement.Declaration(name, value); //take this out, not saure how to fix?
+        return new Ast.Statement.Declaration(name, value);
     }
 
     /**
