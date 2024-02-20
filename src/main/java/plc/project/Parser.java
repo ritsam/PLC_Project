@@ -281,12 +281,8 @@ public final class Parser {
             match("SWITCH");
             Ast.Expression expr = parseExpression();
             List<Ast.Statement.Case> cases = new ArrayList<>();
-
-            while (match("CASE")) {
-                Ast.Expression caseExpr = parseExpression();
-                match(":");
-                List<Ast.Statement> caseBlock = parseBlock();
-                cases.add(new Ast.Statement.Case(Optional.of(caseExpr), caseBlock));
+            while (peek("CASE")) {
+                cases.add(parseCaseStatement());
             }
             List<Ast.Statement> def = new ArrayList<>();
             if (match("DEFAULT")) {
@@ -307,7 +303,18 @@ public final class Parser {
      * default block of a switch statement, aka {@code CASE} or {@code DEFAULT}.
      */
     public Ast.Statement.Case parseCaseStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+         //TODO
+        //'CASE' expression ':' block
+        try {
+            match("CASE");
+            Ast.Expression caseExpr = parseExpression();
+            match(":");
+            List<Ast.Statement> caseBlock = parseBlock();
+            return new Ast.Statement.Case(Optional.of(caseExpr), caseBlock);
+        }
+        catch (ParseException pe) {
+            throw new ParseException(pe.getMessage(), pe.getIndex());
+        }
     }
 
     /**
