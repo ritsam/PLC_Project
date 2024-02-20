@@ -30,21 +30,7 @@ public final class Parser {
      * Parses the {@code source} rule.
      */
     public Ast.Source parseSource() throws ParseException {
-        //TODO 2b
-        try {
-                 List<Ast.Global> g = new ArrayList<>();
-                  List<Ast.Function> f = new ArrayList<>();
-                  while (tokens.has(0)) {
-                      if (match("LIST") || match("VAR") ||match("VAL")) {
-                          g.add(parseGlobal());
-                      } else if (match("FUN")) {
-                          f.add(parseFunction());
-                      }
-                  }
-                  return new Ast.Source(g,f);
-              } catch (ParseException pe) {
-                  throw new ParseException(pe.getMessage(), pe.getIndex());
-              }
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -52,7 +38,7 @@ public final class Parser {
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
     public Ast.Global parseGlobal() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2b
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -60,7 +46,7 @@ public final class Parser {
      * next token declares a list, aka {@code LIST}.
      */
     public Ast.Global parseList() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2b
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -111,7 +97,31 @@ public final class Parser {
      * next tokens start a method, aka {@code FUN}.
      */
     public Ast.Function parseFunction() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2b
+        //throw new UnsupportedOperationException(); //TODO
+        match("FUN");
+        if (!match(Token.Type.IDENTIFIER)) {
+            throw new ParseException("Expected identifier after FUN", tokens.get(-1).getIndex());
+        }
+        String functionName = tokens.get(-1).getLiteral();
+        List<String> parameters = new ArrayList<>();
+        //parameters
+        if (match("(")) {
+            // check for parameters
+            if (!match(")")) {
+                do {
+                    if (!match(Token.Type.IDENTIFIER)) {
+                        throw new ParseException("Expected identifier for function parameter", tokens.get(-1).getIndex());
+                    }
+                    parameters.add(tokens.get(-1).getLiteral());
+                } while (match(","));
+                match(")");
+            }
+        }
+        match("DO");
+        // parse body of function
+        List<Ast.Statement> statements = parseBlock();
+        match("END");
+        return new Ast.Function(functionName, parameters, statements);
     }
 
     /**
@@ -119,7 +129,12 @@ public final class Parser {
      * preceding token indicates the opening a block of statements.
      */
     public List<Ast.Statement> parseBlock() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2b
+        //throw new UnsupportedOperationException(); //TODO
+        List<Ast.Statement> statements = new ArrayList<>();
+        while (!match("}")) {
+            statements.add(parseStatement());
+        }
+        return statements;
     }
 
     /**
@@ -163,7 +178,7 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO 2b
+        //throw new UnsupportedOperationException(); //TODO
         // 'LET' identifier ('=' expression)? ';'
         match("LET");
         if (!match(Token.Type.IDENTIFIER)){
@@ -196,7 +211,7 @@ public final class Parser {
      * {@code IF}.
      */
     public Ast.Statement.If parseIfStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2b
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -205,7 +220,7 @@ public final class Parser {
      * {@code SWITCH}.
      */
     public Ast.Statement.Switch parseSwitchStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO 2b
+        throw new UnsupportedOperationException(); //TODO
     }
 
     /**
