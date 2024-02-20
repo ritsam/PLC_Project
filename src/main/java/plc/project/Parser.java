@@ -52,7 +52,7 @@ public final class Parser {
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
     public Ast.Global parseGlobal() throws ParseException {
-         //TODO
+         //TODO --Unexpected ParseException (Expected global declaration)
         if (match("LIST")) {
             return parseList();
         } else if (match("VAR")) {
@@ -251,7 +251,22 @@ public final class Parser {
      * {@code IF}.
      */
     public Ast.Statement.If parseIfStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO
+        //'IF' expression 'DO' block ('ELSE' block)? 'END'
+        try {
+            match("IF");
+            Ast.Expression condition = parseExpression();
+            match("DO");
+            List<Ast.Statement> then = parseBlock(); //block
+            List<Ast.Statement> el = null; //ELSE
+            if (match("ELSE")) {
+                el = parseBlock();
+            }
+            match("END");
+            return new Ast.Statement.If(condition, then, el);
+        } catch (ParseException e) {
+            throw new ParseException("Error if statement: " + e.getMessage(), tokens.get(-1).getIndex());
+        }
     }
 
     /**
@@ -261,6 +276,7 @@ public final class Parser {
      */
     public Ast.Statement.Switch parseSwitchStatement() throws ParseException {
         throw new UnsupportedOperationException(); //TODO
+        //'SWITCH' expression ('CASE' expression ':' block)* 'DEFAULT' block 'END'
     }
 
     /**
@@ -278,7 +294,7 @@ public final class Parser {
      * {@code WHILE}.
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
+        //TODO  Missing END: Unexpected java.lang.IndexOutOfBoundsException
         match("WHILE");
         Ast.Expression condition = parseExpression();
         if(peek("DO")){
