@@ -258,10 +258,16 @@ public final class Parser {
             match("IF");
             Ast.Expression condition = parseExpression();
             match("DO");
-            List<Ast.Statement> then = parseBlock(); //block
-            List<Ast.Statement> el = new ArrayList<>();; //ELSE
+            List<Ast.Statement> then = new ArrayList<>(); // then block
+            List<Ast.Statement> el = new ArrayList<>(); //ELSE
+            //first match +parse all thens
+            while (!peek("ELSE") && !peek("END")) {
+                then.add(parseStatement());
+            }
             if (match("ELSE")) {
-                el = parseBlock();
+                while (!peek("END")) {
+                    el.add(parseStatement());
+                }
             }
             match("END");
             return new Ast.Statement.If(condition, then, el);
