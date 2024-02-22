@@ -259,7 +259,7 @@ public final class Parser {
             Ast.Expression condition = parseExpression();
             match("DO");
             List<Ast.Statement> then = parseBlock(); //block
-            List<Ast.Statement> el = null; //ELSE
+            List<Ast.Statement> el = new ArrayList<>();; //ELSE
             if (match("ELSE")) {
                 el = parseBlock();
             }
