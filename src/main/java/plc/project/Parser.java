@@ -53,7 +53,7 @@ public final class Parser {
      */
     public Ast.Global parseGlobal() throws ParseException {
          //TODO --Unexpected ParseException (Expected global declaration)
-        //changed match to peek?
+
         if (peek("LIST")) {
             return parseList();
         } else if (peek("VAR")) {
@@ -61,7 +61,7 @@ public final class Parser {
         } else if (peek("VAL")) {
             return parseImmutable();
         } else {
-            throw new ParseException("Expected global declaration", tokens.get(-1).getIndex());
+            throw new ParseException("Expected global declaration", tokens.get(0).getIndex());
         }
     }
 
@@ -71,28 +71,30 @@ public final class Parser {
      */
     public Ast.Global parseList() throws ParseException {
         // 'LIST' identifier '=' '[' expression (',' expression)* ']'
-         //TODO
+        //TODO
         match("LIST");
         if (!match(Token.Type.IDENTIFIER)) {
             throw new ParseException("Expected identifier after LIST", tokens.get(-1).getIndex());
         }
         String listName = tokens.get(-1).getLiteral(); //identifier
-        List<Ast.Expression> exprs = new ArrayList<>(); //??
-        Optional<Ast.Expression> value = Optional.empty(); //??
+        Optional<Ast.Expression> value = Optional.empty();
         if (match("=")) {
-            value = Optional.of(parseExpression()); //?
+            value = Optional.of(parseExpression());
         }
-        do {
-            exprs.add(parseExpression());
-        }
-        while (match(","));
+        List<Ast.Expression> exprs = new ArrayList<>();
+        if (match("[")) {
+            do {
+                exprs.add(parseExpression());
+            }
+            while (match(","));
             if (!match("]")) {
                 throw new ParseException("Expected ]", tokens.get(-1).getIndex());
             }
-            if (!match(";")) {
-                throw new ParseException("Expected ;", tokens.get(-1).getIndex());
-           }
-        return new Ast.Global(listName, false, value); //??
+        } else {
+            throw new ParseException("Expected [", tokens.get(-1).getIndex());
+        }
+
+        return new Ast.Global(listName, false, value);
     }
 
     /**
