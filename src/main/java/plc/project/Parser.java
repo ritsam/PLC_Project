@@ -461,11 +461,11 @@ public final class Parser {
             str = str.substring(1, str.length() - 1);
             return new Ast.Expression.Literal(str);
         } else if (match("(")) {
-            Ast.Expression.Group expression = new Ast.Expression.Group(parseExpression());
-            if (match(")")) {
-                return expression;
+            Ast.Expression expression = parseExpression();
+            if (!match(")")) {
+                throw new ParseException("Missing )", tokens.get(-1).getIndex());
             }
-            throw new ParseException("Need close parenthesis", tokens.get(-1).getIndex());
+            return expression;
         }
         else if (peek(Token.Type.IDENTIFIER)) {
             String id = tokens.get(0).getLiteral();
@@ -476,18 +476,19 @@ public final class Parser {
                     do {
                         arguments.add(parseExpression());
                     } while (match(","));
-                    match(")");
+                    if (!match(")")) {
+                        throw new ParseException("Missing closing parenthesis", tokens.get(-1).getIndex());
+                    }
                 }
                 return new Ast.Expression.Function(id, arguments);
             }
             // check for access to array, uses Optional
             if (match("[")) {
                 Ast.Expression index = parseExpression();
-                if (match("]")) {
-                    return new Ast.Expression.Access(Optional.of(index), id); //error?
-                } else {
-                    throw new ParseException("Expected closing bracket for array access", tokens.get(-1).getIndex());
+                if (!match("]")) {
+                    throw new ParseException("Missing closing bracket", tokens.get(-1).getIndex());
                 }
+                return new Ast.Expression.Access(Optional.of(index), id);
             }
             return new Ast.Expression.Access(Optional.empty(), id);
         }
