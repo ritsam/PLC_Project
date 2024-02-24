@@ -395,7 +395,7 @@ public final class Parser {
         Ast.Expression currentExpression = parseAdditiveExpression();
         while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
             String operation = tokens.get(-1).getLiteral();
-            Ast.Expression rightExpr = parseComparisonExpression();
+            Ast.Expression rightExpr = parseAdditiveExpression();
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpr);
         }
         return currentExpression;
@@ -421,7 +421,7 @@ public final class Parser {
         Ast.Expression expression=parsePrimaryExpression(); //TODO 2a
         while(match("/")||match("*")){
             String multi= tokens.get(-1).getLiteral();
-            Ast.Expression right=parseAdditiveExpression();
+            Ast.Expression right=parsePrimaryExpression();
             expression=new Ast.Expression.Binary(multi,expression,right);
         }
         return expression;
