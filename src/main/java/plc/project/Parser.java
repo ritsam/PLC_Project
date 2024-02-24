@@ -340,11 +340,13 @@ public final class Parser {
         try {
         match("WHILE");
         Ast.Expression condition = parseExpression();
-        if(peek("DO")){
-            match("DO");
-        }
+            if (!match("DO")) {
+                throw new ParseException("Expected 'DO'", -1);
+            }
         List<Ast.Statement> statements = parseBlock();
-        match("END");
+            if (!match("END")) {
+                throw new ParseException("Missing 'END'", -1);
+            }
         return new Ast.Statement.While(condition, statements);
         }
         catch (ParseException e) {
