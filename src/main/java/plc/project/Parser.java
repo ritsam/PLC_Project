@@ -32,19 +32,19 @@ public final class Parser {
     public Ast.Source parseSource() throws ParseException {
         //TODO
         try {
-                  List<Ast.Global> g = new ArrayList<>();
-                  List<Ast.Function> f = new ArrayList<>();
-                  while (tokens.has(0)) {
-                      if (match("LIST") || match("VAR") ||match("VAL")) {
-                          g.add(parseGlobal());
-                      } else if (match("FUN")) {
-                          f.add(parseFunction());
-                      }
-                  }
-                  return new Ast.Source(g,f);
-              } catch (ParseException pe) {
-                  throw new ParseException(pe.getMessage(), pe.getIndex());
-             }
+            List<Ast.Global> g = new ArrayList<>();
+            List<Ast.Function> f = new ArrayList<>();
+            while (tokens.has(0)) {
+                if (match("LIST") || match("VAR") ||match("VAL")) {
+                    g.add(parseGlobal());
+                } else if (match("FUN")) {
+                    f.add(parseFunction());
+                }
+            }
+            return new Ast.Source(g,f);
+        } catch (ParseException pe) {
+            throw new ParseException(pe.getMessage(), pe.getIndex());
+        }
     }
 
     /**
@@ -52,7 +52,7 @@ public final class Parser {
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
     public Ast.Global parseGlobal() throws ParseException {
-         //--Unexpected ParseException (Expected global declaration)
+        //--Unexpected ParseException (Expected global declaration)
 
         if (peek("LIST")) {
             return parseList();
@@ -231,7 +231,7 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-         //TODO
+        //TODO
         // 'LET' identifier ('=' expression)? ';'
         match("LET");
         if (!match(Token.Type.IDENTIFIER)){
@@ -277,7 +277,7 @@ public final class Parser {
                 return new Ast.Statement.If(condition, then, el);
             }
             throw new ParseException("Invalid statement", tokens.get(-1).getIndex());
-            } catch (ParseException e) {
+        } catch (ParseException e) {
             throw new ParseException("Error if statement: " + e.getMessage(), tokens.get(-1).getIndex());
         }
     }
@@ -316,7 +316,7 @@ public final class Parser {
      * default block of a switch statement, aka {@code CASE} or {@code DEFAULT}.
      */
     public Ast.Statement.Case parseCaseStatement() throws ParseException {
-         //TODO
+        //TODO
         //'CASE' expression ':' block
         try {
             match("CASE");
@@ -338,16 +338,16 @@ public final class Parser {
     public Ast.Statement.While parseWhileStatement() throws ParseException {
         //TODO  Missing END: Unexpected java.lang.IndexOutOfBoundsException
         try {
-        match("WHILE");
-        Ast.Expression condition = parseExpression();
+            match("WHILE");
+            Ast.Expression condition = parseExpression();
             if (!match("DO")) {
                 throw new ParseException("Expected 'DO'", -1);
             }
-        List<Ast.Statement> statements = parseBlock();
+            List<Ast.Statement> statements = parseBlock();
             if (!match("END")) {
                 throw new ParseException("Missing 'END'", -1);
             }
-        return new Ast.Statement.While(condition, statements);
+            return new Ast.Statement.While(condition, statements);
         }
         catch (ParseException e) {
             throw new ParseException("Error in while" + e.getMessage(), e.getIndex());
@@ -461,7 +461,7 @@ public final class Parser {
             str = str.substring(1, str.length() - 1);
             return new Ast.Expression.Literal(str);
         } else if (match("(")) {
-            Ast.Expression expression = parseExpression();
+            Ast.Expression.Group expression = new Ast.Expression.Group(parseExpression());
             if (!match(")")) {
                 throw new ParseException("Missing )", tokens.get(-1).getIndex());
             }
