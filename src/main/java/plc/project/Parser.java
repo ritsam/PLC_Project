@@ -52,7 +52,7 @@ public final class Parser {
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
     public Ast.Global parseGlobal() throws ParseException {
-         //TODO --Unexpected ParseException (Expected global declaration)
+         //--Unexpected ParseException (Expected global declaration)
 
         if (peek("LIST")) {
             return parseList();
@@ -257,23 +257,27 @@ public final class Parser {
         //TODO
         //'IF' expression 'DO' block ('ELSE' block)? 'END'
         try {
-            match("IF");
-            Ast.Expression condition = parseExpression();
-            match("DO");
-            List<Ast.Statement> then = new ArrayList<>(); // then block
-            List<Ast.Statement> el = new ArrayList<>(); //ELSE
-            //first match +parse all thens
-            while (!peek("ELSE") && !peek("END")) {
-                then.add(parseStatement());
-            }
-            if (match("ELSE")) {
-                while (!peek("END")) {
-                    el.add(parseStatement());
+            if (match("IF")) {
+                Ast.Expression condition = parseExpression();
+                if (!match("DO")) {
+                    throw new ParseException("Expected 'DO' after IF condition", tokens.get(-1).getIndex());
                 }
+                List<Ast.Statement> then = new ArrayList<>(); // then block
+                List<Ast.Statement> el = new ArrayList<>(); //ELSE
+                //first match +parse all thens
+                while (!peek("ELSE") && !peek("END")) {
+                    then.add(parseStatement());
+                }
+                if (match("ELSE")) {
+                    while (!peek("END")) {
+                        el.add(parseStatement());
+                    }
+                }
+                match("END");
+                return new Ast.Statement.If(condition, then, el);
             }
-            match("END");
-            return new Ast.Statement.If(condition, then, el);
-        } catch (ParseException e) {
+            throw new ParseException("Invalid statement", tokens.get(-1).getIndex());
+            } catch (ParseException e) {
             throw new ParseException("Error if statement: " + e.getMessage(), tokens.get(-1).getIndex());
         }
     }
