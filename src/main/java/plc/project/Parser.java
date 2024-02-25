@@ -361,8 +361,9 @@ public final class Parser {
                 match("END");
                 return new Ast.Statement.While(condition, statements);
             }
-            // will throw new ParseException("Missing 'END'", -1); INSIDE PARSEBLOCK. parseBlock will check if there is an END--removed
-            return new Ast.Statement.While(condition, statements);
+            else {
+                throw new ParseException("Missing 'END'", -1);
+            }
         }
         catch (ParseException e) {
             throw new ParseException("Error in while: " + e.getMessage(), e.getIndex());
