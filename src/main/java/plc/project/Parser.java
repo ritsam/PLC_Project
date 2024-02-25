@@ -343,7 +343,7 @@ public final class Parser {
      * {@code WHILE}.
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
-        //TODO  Missing END: Unexpected java.lang.IndexOutOfBoundsException
+        //TODO  Missing END: Unexpected java.lang.IndexOutOfBoundsException.
         try {
             match("WHILE");
             Ast.Expression condition = parseExpression();
@@ -357,9 +357,7 @@ public final class Parser {
             if(peek("END")){
                 match("END");
             }
-            /*else {
-                throw new ParseException("Missing 'END'", -1);
-            }*/
+            // will throw new ParseException("Missing 'END'", -1); INSIDE PARSEBLOCK. parseBlock will check if there is an END
             return new Ast.Statement.While(condition, statements);
         }
         catch (ParseException e) {
