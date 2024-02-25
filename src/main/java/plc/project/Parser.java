@@ -186,6 +186,9 @@ public final class Parser {
                 throw new ParseException("Potential Error Encountered", tokens.get(start).getIndex());
             }
             statements.add(statement);
+            if(!peek("END")) {
+                throw new ParseException("Missing 'END'", -1);
+            }
         }
         return statements;
     }
@@ -254,8 +257,7 @@ public final class Parser {
      * {@code IF}.
      */
     public Ast.Statement.If parseIfStatement() throws ParseException {
-        //TODO
-        //'IF' expression 'DO' block ('ELSE' block)? 'END'
+        //TODO 'IF' expression 'DO' block ('ELSE' block)? 'END'
         try {
             if (match("IF")) {
                 Ast.Expression condition = parseExpression();
@@ -273,8 +275,13 @@ public final class Parser {
                         el.add(parseStatement());
                     }
                 }
-                match("END");
-                return new Ast.Statement.If(condition, then, el);
+                //match("END");
+                if(match("END")){
+                    return new Ast.Statement.If(condition, then, el);
+                }
+                else {
+                    throw new ParseException("Missing END", tokens.get(-1).getIndex());
+                }
             }
             throw new ParseException("Invalid statement", tokens.get(-1).getIndex());
         } catch (ParseException e) {
@@ -340,17 +347,23 @@ public final class Parser {
         try {
             match("WHILE");
             Ast.Expression condition = parseExpression();
-            if (!match("DO")) {
+            if(peek("DO")){
+                match("DO");
+            }
+            else{
                 throw new ParseException("Expected 'DO'", -1);
             }
             List<Ast.Statement> statements = parseBlock();
-            if (!match("END")) {
-                throw new ParseException("Missing 'END'", -1);
+            if(peek("END")){
+                match("END");
             }
+            /*else {
+                throw new ParseException("Missing 'END'", -1);
+            }*/
             return new Ast.Statement.While(condition, statements);
         }
         catch (ParseException e) {
-            throw new ParseException("Error in while" + e.getMessage(), e.getIndex());
+            throw new ParseException("Error in while: " + e.getMessage(), e.getIndex());
         }
     }
 
