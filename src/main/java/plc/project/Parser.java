@@ -186,9 +186,6 @@ public final class Parser {
                 throw new ParseException("Potential Error Encountered", tokens.get(start).getIndex());
             }
             statements.add(statement);
-            if(!peek("END")) {
-                throw new ParseException("Missing 'END'", -1);
-            }
         }
         return statements;
     }
@@ -356,11 +353,15 @@ public final class Parser {
             else{
                 throw new ParseException("Expected 'DO'", -1);
             }
-            List<Ast.Statement> statements = parseBlock();
-            if(peek("END")){
-                match("END");
+            List<Ast.Statement> statements = new ArrayList<Ast.Statement>();
+            while (!peek("END")){
+                statements.add(parseStatement());
             }
-            // will throw new ParseException("Missing 'END'", -1); INSIDE PARSEBLOCK. parseBlock will check if there is an END
+            if (peek("END")) {
+                match("END");
+                return new Ast.Statement.While(condition, statements);
+            }
+            // will throw new ParseException("Missing 'END'", -1); INSIDE PARSEBLOCK. parseBlock will check if there is an END--removed
             return new Ast.Statement.While(condition, statements);
         }
         catch (ParseException e) {
