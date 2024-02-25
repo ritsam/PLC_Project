@@ -201,15 +201,15 @@ public final class Parser {
     public Ast.Statement parseStatement() throws ParseException {
         //TODO  2b
         try {
-            if (match("LET")) {
+            if (peek("LET")) {
                 return parseDeclarationStatement();
-            } else if (match("SWITCH")) {
+            } else if (peek("SWITCH")) {
                 return parseSwitchStatement();
-            } else if (match("IF")) {
+            } else if (peek("IF")) {
                 return parseIfStatement();
-            } else if (match("WHILE")) {
+            } else if (peek("WHILE")) {
                 return parseWhileStatement();
-            } else if (match("RETURN")) {
+            } else if (peek("RETURN")) {
                 return parseReturnStatement();
             } else {
                 Ast.Expression expression = parseExpression();
@@ -260,6 +260,7 @@ public final class Parser {
         //TODO 'IF' expression 'DO' block ('ELSE' block)? 'END'
         try {
             if (match("IF")) {
+                //match("IF");
                 Ast.Expression condition = parseExpression();
                 if (!match("DO")) {
                     throw new ParseException("Expected 'DO' after IF condition", tokens.get(-1).getIndex());
@@ -283,7 +284,9 @@ public final class Parser {
                     throw new ParseException("Missing END", tokens.get(-1).getIndex());
                 }
             }
-            throw new ParseException("Invalid statement", tokens.get(-1).getIndex());
+            else {
+                throw new ParseException("Invalid statement", tokens.get(-1).getIndex());
+            }
         } catch (ParseException e) {
             throw new ParseException("Error if statement: " + e.getMessage(), tokens.get(-1).getIndex());
         }
