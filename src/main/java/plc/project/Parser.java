@@ -35,7 +35,7 @@ public final class Parser {
             List<Ast.Global> g = new ArrayList<>();
             List<Ast.Function> f = new ArrayList<>();
             while (tokens.has(0)) {
-                if (match("LIST") || match("VAR") ||match("VAL")) {
+                if (peek("LIST") || peek("VAR") || peek("VAL")) {
                     g.add(parseGlobal());
                 } else if (match("FUN")) {
                     f.add(parseFunction());
