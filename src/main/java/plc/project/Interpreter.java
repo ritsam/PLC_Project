@@ -26,17 +26,21 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Source ast) {
        // throw new UnsupportedOperationException(); //TODO
-        List<Ast.Field> fields = ast.getFields();
-        for (int i = 0; i < fields.size(); i++) {
-            Ast.Field field = fields.get(i);
-            visit(field);
+        List<Ast.Global> global = ast.getGlobals();
+        for (int i = 0; i < global.size(); i++) {
+            Ast.Global global = global.get(i);
+            visit(global);
         }
         List<Ast.Method> methods = ast.getMethods();
         for (int i = 0; i < methods.size(); i++) {
             Ast.Method method = methods.get(i);
             visit(method);
         }
-        return scope.lookupFunction("main", 0).invoke(Collections.emptyList());
+        try {
+            return scope.lookupFunction("main", 0).invoke(Collections.emptyList());
+        } catch (Scope.LookupException e) {
+            throw new RuntimeException("Main function not found in source.");
+        }
     }
 
     @Override
