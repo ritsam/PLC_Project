@@ -40,7 +40,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             return scope.lookupFunction("main", 0).invoke(Collections.emptyList());
         } catch (Scope.LookupException e) {
             throw new RuntimeException("Main function not found in source.");
-        }
+        }  
     }
 
     @Override
