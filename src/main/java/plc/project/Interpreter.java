@@ -80,7 +80,19 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Assignment ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        Ast.Expression acc = ast.getReceiver();
+        if(acc instanceof Ast.Expression.Access) {
+            if(((Ast.Expression.Access) acc).getReceiver().isPresent()) {
+                visit(((Ast.Expression.Access) acc).getReceiver().get()) 
+                    .setGlobal(((Ast.Expression.Access) acc).getName(), visit(ast.getValue())); 
+            } 
+            else {
+                Environment.Variable var = scope.lookupVariable(((Ast.Expression.Access) acc).getName());
+                var.setValue(visit(ast.getValue()));
+            }
+        }
+        return Environment.NIL;
     }
 
     @Override
