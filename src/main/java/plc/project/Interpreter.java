@@ -25,16 +25,16 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Source ast) {
-       // throw new UnsupportedOperationException(); //TODO
-         List<Ast.Global> global = ast.getGlobals();
+       // throw new UnsupportedOperationException(); //TODO done
+        List<Ast.Global> global = ast.getGlobals();
         for (int i = 0; i < global.size(); i++) {
-            Ast.Global global = global.get(i);
-            visit(global);
+            Ast.Global g = global.get(i);
+            visit(g);
         }
-        List<Ast.Functions> function = ast.getFunctions();
+        List<Ast.Function> function = ast.getFunctions();
         for (int i = 0; i < function.size(); i++) {
-            Ast.Function function = function.get(i);
-            visit(function);
+            Ast.Function f = function.get(i);
+            visit(f);
         }
         try {
             return scope.lookupFunction("main", 0).invoke(Collections.emptyList());
@@ -56,13 +56,13 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Statement.Expression ast) {
         //TODO done
-        visit(ast.getExpression());
+        visit(ast.getExpression()); //evalutes
         return Environment.NIL;
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Declaration ast) {
-         //TODO (in lecture) done
+         //TODO done (in lecture)
         if(ast.getValue().isPresent()) {
             scope.defineVariable(ast.getName(), true, visit(ast.getValue().get()));
         }
@@ -91,22 +91,44 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.If ast) {
-        throw new UnsupportedOperationException(); //TODO
+         //TODO done
+        while (requireType(Boolean.class, visit(ast.getCondition())) != null) {
+            try {
+                scope = new Scope(scope);
+                if (!((Boolean) visit(ast.getCondition()).getValue())) { //false-else
+                    for (Ast.Statement e : ast.getElseStatements()) {
+                        visit(e);
+                    }
+                } else {
+                    for (Ast.Statement t : ast.getThenStatements()) { //then
+                        visit(t);
+                    }
+                }
+            } finally {
+                scope = scope.getParent();
+            }
+        }
+        return Environment.NIL;
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Switch ast) {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException();//TODO
+
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Case ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO ??
+        for (Ast.Statement stmt : ast.getStatements()) {
+            visit(stmt);
+        }
+        return Environment.NIL;
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.While ast) {
-        //TODO (in lecture)
+        //TODO done (in lecture)
         while (requireType(Boolean.class, visit(ast.getCondition()))) {
             try {
                 scope = new Scope(scope);
@@ -129,7 +151,9 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Literal ast) {
-        throw new UnsupportedOperationException(); //TODO
+         //TODO done
+        //	Returns literal asPlcObject
+        return (ast.getLiteral() == null) ? Environment.NIL : Environment.create(ast.getLiteral());
     }
 
     @Override
