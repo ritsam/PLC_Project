@@ -84,8 +84,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
         Ast.Expression acc = ast.getReceiver();
         if(acc instanceof Ast.Expression.Access) {
             if(((Ast.Expression.Access) acc).getReceiver().isPresent()) {
-                visit(((Ast.Expression.Access) acc).getReceiver().get()) 
-                    .setGlobal(((Ast.Expression.Access) acc).getName(), visit(ast.getValue())); 
+                visit(((Ast.Expression.Access) acc).getReceiver().get()).setGlobal(((Ast.Expression.Access) acc).getName(), visit(ast.getValue()));
             } 
             else {
                 Environment.Variable var = scope.lookupVariable(((Ast.Expression.Access) acc).getName());
@@ -176,7 +175,11 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
         throw new UnsupportedOperationException(); //TODO
-
+        Ast.Expression acc = ast.getReceiver();
+        if(acc.isPresent()) {
+            return visit(acc.get()).getField(ast.getName()).getValue();
+        }
+        return scope.lookupVariable(ast.getName()).getValue();
     }
 
     @Override
