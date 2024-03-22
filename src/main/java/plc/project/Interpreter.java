@@ -80,7 +80,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Assignment ast) {
-        //throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO done
         Ast.Expression acc = ast.getReceiver();
         if(acc instanceof Ast.Expression.Access) {
             if(((Ast.Expression.Access) acc).getReceiver().isPresent()) {
@@ -174,7 +174,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException(); //TODO
+        throw new UnsupportedOperationException(); //TODO done
         Ast.Expression acc = ast.getReceiver();
         if(acc.isPresent()) {
             return visit(acc.get()).getField(ast.getName()).getValue();
@@ -184,7 +184,22 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Function ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO done
+        try {
+            scope = new Scope(scope);
+            List<Environment.PlcObject> arg = new ArrayList<Environment.PlcObject>();
+            for (Ast.Expression ar : ast.getArguments()) {
+                arg.add(visit(ar));
+            }
+            if (ast.getReceiver().isPresent()) {
+                return visit(ast.getReceiver().get()).callMethod(ast.getName(), arg);
+            }
+            else {
+                return scope.lookupFunction(ast.getName(), arg.size()).invoke(arg);
+            }
+        } finally {
+            scope = scope.getParent();
+        }
     }
 
     @Override
