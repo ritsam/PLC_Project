@@ -51,22 +51,21 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Expression ast) {
-         //TODO-done
+        //TODO done
         visit(ast.getExpression());
         return Environment.NIL;
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Declaration ast) {
-        //TODO-done
+         //TODO (in lecture) done
         if(ast.getValue().isPresent()) {
             scope.defineVariable(ast.getName(), true, visit(ast.getValue().get()));
         }
         else{
             scope.defineVariable(ast.getName(),true,Environment.NIL);
-            }
-        return Environment.NIL;
         }
+        return Environment.NIL;
     }
 
     @Override
@@ -91,7 +90,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.While ast) {
-    //TODO (in lecture)- done
+        //TODO (in lecture)
         while (requireType(Boolean.class, visit(ast.getCondition()))) {
             try {
                 scope = new Scope(scope);
@@ -107,7 +106,9 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Return ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO done
+        Environment.PlcObject value = visit(ast.getValue());
+        throw new Return(value);
     }
 
     @Override
@@ -117,7 +118,8 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Group ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO done
+        return visit(ast.getExpression());
     }
 
     @Override
