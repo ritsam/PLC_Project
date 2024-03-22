@@ -25,16 +25,16 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Source ast) {
-       // throw new UnsupportedOperationException(); //TODO
-         List<Ast.Global> global = ast.getGlobals();
+       // throw new UnsupportedOperationException(); //TODO done
+        List<Ast.Global> global = ast.getGlobals();
         for (int i = 0; i < global.size(); i++) {
-            Ast.Global global = global.get(i);
-            visit(global);
+            Ast.Global g = global.get(i);
+            visit(g);
         }
-        List<Ast.Functions> function = ast.getFunctions();
+        List<Ast.Function> function = ast.getFunctions();
         for (int i = 0; i < function.size(); i++) {
-            Ast.Function function = function.get(i);
-            visit(function);
+            Ast.Function f = function.get(i);
+            visit(f);
         }
         try {
             return scope.lookupFunction("main", 0).invoke(Collections.emptyList());
