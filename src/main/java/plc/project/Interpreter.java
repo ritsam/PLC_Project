@@ -55,25 +55,27 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     public Environment.PlcObject visit(Ast.Function ast) {
         //throw new UnsupportedOperationException(); //TODO 
         scope.defineFunction(ast.getName(), ast.getParameters().size(), args -> {
-        Scope currentScope = scope; 
-        //new child scope
-        scope = new Scope(currentScope); 
-        try {
-            for (int i = 0; i < ast.getParameters().size(); i++) {
-                scope.defineVariable(ast.getParameters().get(i), true, args.get(i));
+            Scope currentScope = scope; 
+            //new child scope
+            scope = new Scope(currentScope); 
+            try {
+                for (int i = 0; i < ast.getParameters().size(); i++) {
+                    cope.defineVariable(ast.getParameters().get(i), true, args.get(i));
+                }
+                for (Ast.Statement statement : ast.getStatements()) {
+                    visit(statement);
+                }
+            } 
+            catch (Return returnValue) {
+                return returnValue.value; 
+            }   
+            finally {
+                scope = currentScope; 
             }
-            for (Ast.Statement statement : ast.getStatements()) {
-                visit(statement);
-            }
-        } catch (Return returnValue) {
-            return returnValue.value; 
-        } finally {
-            scope = currentScope; 
-        }
+            return Environment.NIL; 
+        });
         return Environment.NIL; 
-    });
-    return Environment.NIL; 
-}
+    }
 
     }
 
@@ -302,7 +304,13 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.PlcList ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        List<Environment.PlcObject> evaluatedList = new ArrayList<>();        
+        for (Ast.Expression expression : ast.getValues()) {
+            evaluatedList.add(visit(expression));
+        }
+        //returns list wrapped in a PlcObject
+        return Environment.create(evaluatedList);
     }
 
     /**
