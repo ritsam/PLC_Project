@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Collections;
+import java.util.Objects;
 
 
 public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
@@ -232,67 +233,57 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     public Environment.PlcObject visit(Ast.Expression.Binary ast) {
         throw new UnsupportedOperationException(); //TODO
         /*switch (ast.getOperator()) {
-            case "&&": {
-                Boolean left = requireType(Boolean.class, visit(ast.getLeft()).getValue());
-                // Short-circuit evaluation for &&
-                if (!left) return Environment.create(false);
-                Boolean right = requireType(Boolean.class, visit(ast.getRight()).getValue());
-                return Environment.create(left && right);
-            }
-            case "||": {
-                Boolean left = requireType(Boolean.class, visit(ast.getLeft()).getValue());
-                // Short-circuit evaluation for ||
-                if (left) return Environment.create(true);
-                Boolean right = requireType(Boolean.class, visit(ast.getRight()).getValue());
-                return Environment.create(left || right);
-            }
-            case "<": // Intentionally fall through to the next case
-            case ">": {
-                Comparable left = requireType(Comparable.class, visit(ast.getLeft()).getValue());
-                Comparable right = requireType(Comparable.class, visit(ast.getRight()).getValue());
-                boolean result;
-                if (ast.getOperator().equals("<")) {
-                    result = left.compareTo(right) < 0;
-                } else { // For ">"
-                    result = left.compareTo(right) > 0;
+            case "&&":
+                return Environment.create(requireType(Boolean.class, visit(ast.getLeft())) && requireType(Boolean.class, visit(ast.getRight())));
+            case "||":
+                return Environment.create(requireType(Boolean.class, visit(ast.getLeft())) || requireType(Boolean.class, visit(ast.getRight())));
+            case "<":
+                if(visit(ast.getLeft()).getValue() instanceof Comparable) {
+                    Environment.PlcObject right = visit(ast.getRight());
+                    if(requireType(visit(ast.getLeft()).getValue().getClass(), right) != null) {
+                        return Environment.create(((Comparable) visit(ast.getLeft()).getValue()).compareTo(right.getValue()) < 0);
+                    }
                 }
-                return Environment.create(result);
-            }
+                break;
+            case ">":
+                if(visit(ast.getLeft()).getValue() instanceof Comparable) {
+                    Environment.PlcObject right = visit(ast.getRight());
+                    if(requireType(visit(ast.getLeft()).getValue().getClass(), right) != null) {
+                        return Environment.create(((Comparable) visit(ast.getLeft()).getValue()).compareTo(right.getValue()) > 0);
+                    }
+                }
+                break;
             case "==":
-            case "!=": {
-                Object left = visit(ast.getLeft()).getValue();
-                Object right = visit(ast.getRight()).getValue();
-                boolean result = Objects.equals(left, right);
-                if (ast.getOperator().equals("!=")) result = !result;
-                return Environment.create(result);
-            }
-            case "+": {
-                Object left = visit(ast.getLeft()).getValue();
-                Object right = visit(ast.getRight()).getValue();
-                if (left instanceof String || right instanceof String) {
-                    return Environment.create(left.toString() + right.toString());
-                } else if (left instanceof BigInteger && right instanceof BigInteger) {
-                    return Environment.create(((BigInteger) left).add((BigInteger) right));
-                } else if (left instanceof BigDecimal && right instanceof BigDecimal) {
-                    return Environment.create(((BigDecimal) left).add((BigDecimal) right));
-                } else {
-                    throw new RuntimeException("Invalid types for + operation.");
+                return Environment.create(Objects.equals(visit(ast.getLeft()), visit(ast.getRight())));
+            case "!=":
+                return Environment.create(!Objects.equals(visit(ast.getLeft()), visit(ast.getRight())));
+            case "+":
+                Environment.PlcObject left = visit(ast.getLeft());
+                Environment.PlcObject right = visit(ast.getRight());
+                if (left.getValue() instanceof String || right.getValue() instanceof String) {
+                    return Environment.create(left.getValue().toString() + right.getValue().toString());
                 }
-            }
+                else if (left.getValue() instanceof BigInteger && right.getValue() instanceof BigInteger) {
+                    return Environment.create(((BigInteger) left.getValue()).add((BigInteger) right.getValue()));
+                }
+                else if (left.getValue() instanceof BigDecimal && right.getValue() instanceof BigDecimal) {
+                    return Environment.create(((BigDecimal) left.getValue()).add((BigDecimal) right.getValue()));
+                }
+                else {
+                    throw new RuntimeException("Invalid operands for + operator.");
+                }
             case "-":
+                return Environment.create(requireType(BigInteger.class, visit(ast.getLeft())).subtract(requireType(BigInteger.class, visit(ast.getRight()))));
             case "*":
-            case "/": {
-                // Implement subtraction, multiplication, and division similarly to addition,
-                // using the appropriate BigInteger or BigDecimal methods.
-                // For "/", make sure to handle division by zero and use RoundingMode.HALF_EVEN for BigDecimal.
-            }
-            case "^": {
-                BigInteger base = requireType(BigInteger.class, visit(ast.getLeft()).getValue());
-                BigInteger exponent = requireType(BigInteger.class, visit(ast.getRight()).getValue());
-                return Environment.create(base.pow(exponent.intValueExact())); // Note: intValueExact() throws if out of range
-            }
+                return Environment.create(requireType(BigInteger.class, visit(ast.getLeft())).multiply(requireType(BigInteger.class, visit(ast.getRight()))));
+            case "/":
+                BigInteger rightDiv = requireType(BigInteger.class, visit(ast.getRight()));
+                if (rightDiv.equals(BigInteger.ZERO)) throw new RuntimeException("Division by zero.");
+                return Environment.create(requireType(BigInteger.class, visit(ast.getLeft())).divide(rightDiv));
+            case "^":
+                return Environment.create(requireType(BigInteger.class, visit(ast.getLeft())).pow(requireType(BigInteger.class, visit(ast.getRight())).intValueExact()));
             default:
-                throw new RuntimeException("Unsupported binary operator: " + ast.getOperator());
+                throw new RuntimeException("Unsupported operator: " + ast.getOperator());
         }*/
     }
 
