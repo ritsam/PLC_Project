@@ -28,20 +28,17 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Source ast) {
         // throw new UnsupportedOperationException(); //TODO done
-        List<Ast.Global> global = ast.getGlobals();
-        for (int i = 0; i < global.size(); i++) {
-            Ast.Global g = global.get(i);
-            visit(g);
+        for (Ast.Global global : ast.getGlobals()) {
+            visit(global);
         }
-        List<Ast.Function> function = ast.getFunctions();
-        for (int i = 0; i < function.size(); i++) {
-            Ast.Function f = function.get(i);
-            visit(f);
+        for (Ast.Function function : ast.getFunctions()) {
+            visit(function);
         }
         try {
-            return scope.lookupFunction("main", 0).invoke(Collections.emptyList());
+            Environment.Function mainFunction = scope.lookupFunction("main", 0);
+            return mainFunction.invoke(Collections.emptyList());
         } catch (RuntimeException e) {
-            throw new RuntimeException("Main function not found in source.");
+            throw new RuntimeException("Main function not found in source.", e);
         }
     }
 
@@ -58,7 +55,25 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Function ast) {
-        throw new UnsupportedOperationException(); //TODO
+        scope.defineFunction(ast.getName(), ast.getParameters().size(), args -> {
+            Scope currentScope = scope;
+            //new child scope
+            scope = new Scope(currentScope);
+            try {
+                for (int i = 0; i < ast.getParameters().size(); i++) {
+                    scope.defineVariable(ast.getParameters().get(i), true, args.get(i));
+                }
+                for (Ast.Statement statement : ast.getStatements()) {
+                    visit(statement);
+                }
+            } catch (Return returnValue) {
+                return returnValue.value;
+            } finally {
+                scope = currentScope;
+            }
+            return Environment.NIL;
+        });
+        return Environment.NIL;
     }
 
     @Override
@@ -82,7 +97,6 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Assignment ast) {
-        //throw new UnsupportedOperationException(); //TODO done
         Ast.Expression receiverExpression = ast.getReceiver();
         if (!(receiverExpression instanceof Ast.Expression.Access)) {
             throw new RuntimeException("Only variables or list elements can be assigned.");
@@ -90,19 +104,20 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
         Ast.Expression.Access access = (Ast.Expression.Access) receiverExpression;
         Environment.Variable variable = scope.lookupVariable(access.getName());
         if (!variable.getMutable()) {
-            throw new RuntimeException("Immutable variable- cant assign.");
+            throw new RuntimeException("Immutable variable cannot be assigned.");
         }
         if (access.getOffset().isPresent()) {
             Environment.PlcObject listObject = variable.getValue();
             if (!(listObject.getValue() instanceof List)) {
                 throw new RuntimeException("Variable is not a list - offset is present.");
             }
-            List<Environment.PlcObject> list = (List<Environment.PlcObject>) listObject.getValue();
+            List list = (List) listObject.getValue();
             int index = requireType(Number.class, visit(access.getOffset().get())).intValue();
             if (index < 0 || index >= list.size()) {
                 throw new RuntimeException("List index out of bounds.");
             }
-            list.set(index, visit(ast.getValue()));
+            Object newValue = visit(ast.getValue()).getValue();
+            list.set(index, newValue);
         } else {
             variable.setValue(visit(ast.getValue()));
         }
@@ -112,29 +127,60 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Statement.If ast) {
         //TODO done
-        while (requireType(Boolean.class, visit(ast.getCondition())) != null) {
-            try {
-                scope = new Scope(scope);
-                if (!((Boolean) visit(ast.getCondition()).getValue())) { //false-else
-                    for (Ast.Statement e : ast.getElseStatements()) {
-                        visit(e);
-                    }
-                } else {
-                    for (Ast.Statement t : ast.getThenStatements()) { //then
-                        visit(t);
-                    }
+        Environment.PlcObject conditionObject = visit(ast.getCondition());
+        Object rawValue = conditionObject.getValue();
+        Boolean conditionResult;
+        if (rawValue instanceof Boolean) {
+            conditionResult = (Boolean) rawValue;
+        } else {
+            throw new RuntimeException("IF statement condition is not a Boolean. rawVAL = " + rawValue);
+        }
+        scope = new Scope(scope);
+        try {
+            if (conditionResult) {
+                for (Ast.Statement stmt : ast.getThenStatements()) {
+                    visit(stmt);
                 }
-            } finally {
-                scope = scope.getParent();
+            } else {
+                for (Ast.Statement stmt : ast.getElseStatements()) {
+                    visit(stmt);
+                }
             }
+        } finally {
+            scope = scope.getParent();
         }
         return Environment.NIL;
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Switch ast) {
-        throw new UnsupportedOperationException();//TODO
+        Environment.PlcObject conditionValue = visit(ast.getCondition());
+        Scope originalScope = scope;
+        scope = new Scope(originalScope);
+        try {
+            boolean matchFound = false;
 
+            for (Ast.Statement.Case caseStmt : ast.getCases()) {
+                if (matchFound || !caseStmt.getValue().isPresent()) {
+                    for (Ast.Statement statement : caseStmt.getStatements()) {
+                        visit(statement);
+                    }
+                    break;
+                } else {
+                    Environment.PlcObject caseValue = visit(caseStmt.getValue().get());
+                    if (conditionValue.equals(caseValue)) {
+                        matchFound = true;
+                        for (Ast.Statement statement : caseStmt.getStatements()) {
+                            visit(statement);
+                        }
+                        break;
+                    }
+                }
+            }
+        } finally {
+            scope = originalScope;
+        }
+        return Environment.NIL;
     }
 
     @Override
@@ -185,6 +231,69 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Expression.Binary ast) {
         throw new UnsupportedOperationException(); //TODO
+        /*switch (ast.getOperator()) {
+            case "&&": {
+                Boolean left = requireType(Boolean.class, visit(ast.getLeft()).getValue());
+                // Short-circuit evaluation for &&
+                if (!left) return Environment.create(false);
+                Boolean right = requireType(Boolean.class, visit(ast.getRight()).getValue());
+                return Environment.create(left && right);
+            }
+            case "||": {
+                Boolean left = requireType(Boolean.class, visit(ast.getLeft()).getValue());
+                // Short-circuit evaluation for ||
+                if (left) return Environment.create(true);
+                Boolean right = requireType(Boolean.class, visit(ast.getRight()).getValue());
+                return Environment.create(left || right);
+            }
+            case "<": // Intentionally fall through to the next case
+            case ">": {
+                Comparable left = requireType(Comparable.class, visit(ast.getLeft()).getValue());
+                Comparable right = requireType(Comparable.class, visit(ast.getRight()).getValue());
+                boolean result;
+                if (ast.getOperator().equals("<")) {
+                    result = left.compareTo(right) < 0;
+                } else { // For ">"
+                    result = left.compareTo(right) > 0;
+                }
+                return Environment.create(result);
+            }
+            case "==":
+            case "!=": {
+                Object left = visit(ast.getLeft()).getValue();
+                Object right = visit(ast.getRight()).getValue();
+                boolean result = Objects.equals(left, right);
+                if (ast.getOperator().equals("!=")) result = !result;
+                return Environment.create(result);
+            }
+            case "+": {
+                Object left = visit(ast.getLeft()).getValue();
+                Object right = visit(ast.getRight()).getValue();
+                if (left instanceof String || right instanceof String) {
+                    return Environment.create(left.toString() + right.toString());
+                } else if (left instanceof BigInteger && right instanceof BigInteger) {
+                    return Environment.create(((BigInteger) left).add((BigInteger) right));
+                } else if (left instanceof BigDecimal && right instanceof BigDecimal) {
+                    return Environment.create(((BigDecimal) left).add((BigDecimal) right));
+                } else {
+                    throw new RuntimeException("Invalid types for + operation.");
+                }
+            }
+            case "-":
+            case "*":
+            case "/": {
+                // Implement subtraction, multiplication, and division similarly to addition,
+                // using the appropriate BigInteger or BigDecimal methods.
+                // For "/", make sure to handle division by zero and use RoundingMode.HALF_EVEN for BigDecimal.
+            }
+            case "^": {
+                BigInteger base = requireType(BigInteger.class, visit(ast.getLeft()).getValue());
+                BigInteger exponent = requireType(BigInteger.class, visit(ast.getRight()).getValue());
+                return Environment.create(base.pow(exponent.intValueExact())); // Note: intValueExact() throws if out of range
+            }
+            default:
+                throw new RuntimeException("Unsupported binary operator: " + ast.getOperator());
+        }*/
     }
 
     @Override
@@ -222,7 +331,11 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.PlcList ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        List<Object> evaluatedList = ast.getValues().stream()
+                .map(expr -> visit(expr).getValue()) // Extracting the raw value
+                .collect(Collectors.toList());
+        return Environment.create(evaluatedList);
     }
 
     /**
