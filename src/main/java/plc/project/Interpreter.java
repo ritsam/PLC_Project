@@ -231,27 +231,27 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException(); //TODO
-        /*switch (ast.getOperator()) {
+        //throw new UnsupportedOperationException(); //TODO
+        switch (ast.getOperator()) {
             case "&&":
                 return Environment.create(requireType(Boolean.class, visit(ast.getLeft())) && requireType(Boolean.class, visit(ast.getRight())));
             case "||":
                 return Environment.create(requireType(Boolean.class, visit(ast.getLeft())) || requireType(Boolean.class, visit(ast.getRight())));
             case "<":
-                if(visit(ast.getLeft()).getValue() instanceof Comparable) {
+                /*if(visit(ast.getLeft()).getValue() instanceof Comparable) {
                     Environment.PlcObject right = visit(ast.getRight());
                     if(requireType(visit(ast.getLeft()).getValue().getClass(), right) != null) {
                         return Environment.create(((Comparable) visit(ast.getLeft()).getValue()).compareTo(right.getValue()) < 0);
                     }
-                }
+                }*/
                 break;
             case ">":
-                if(visit(ast.getLeft()).getValue() instanceof Comparable) {
+                /*if(visit(ast.getLeft()).getValue() instanceof Comparable) {
                     Environment.PlcObject right = visit(ast.getRight());
                     if(requireType(visit(ast.getLeft()).getValue().getClass(), right) != null) {
                         return Environment.create(((Comparable) visit(ast.getLeft()).getValue()).compareTo(right.getValue()) > 0);
                     }
-                }
+                }*/
                 break;
             case "==":
                 return Environment.create(Objects.equals(visit(ast.getLeft()), visit(ast.getRight())));
@@ -284,7 +284,8 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
                 return Environment.create(requireType(BigInteger.class, visit(ast.getLeft())).pow(requireType(BigInteger.class, visit(ast.getRight())).intValueExact()));
             default:
                 throw new RuntimeException("Unsupported operator: " + ast.getOperator());
-        }*/
+        }
+        throw new RuntimeException("Unsupported operator: " + ast.getOperator());
     }
 
     @Override
