@@ -26,7 +26,27 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
-        throw new UnsupportedOperationException();  // TODO
+        for (Ast.Global global : ast.getGlobals()) {
+            visit(global);
+        }
+
+        boolean foundMainFunct = false;
+
+        //visit all functions+define
+        for (Ast.Function function : ast.getFunctions()) {
+            visit(function);
+            if (function.getName().equals("main") && function.getParameters().isEmpty()) {
+                foundMainFunct = true;
+                if (!function.getReturnTypeName().orElse("").equals("Integer")) {
+                    throw new RuntimeException("Main function must have an Integer return type.");
+                }
+            }
+        }
+        if (!foundMainFunct) {
+            throw new RuntimeException("Main function not found.");
+        }
+
+        return null;
     }
 
     @Override
@@ -51,7 +71,12 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Assignment ast) {
-        throw new UnsupportedOperationException();  // TODO
+
+        //throw new UnsupportedOperationException();  // TODO
+        Environment.Type valueType = ast.getValue().getType();
+        Environment.Type receiverType = ast.getReceiver().getType();
+        requireAssignable(receiverType, valueType);
+        return null;
     }
 
     @Override
@@ -110,7 +135,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {
-        throw new UnsupportedOperationException();  // TODO
+        //throw new UnsupportedOperationException();  // TODO
+        if (!type.equals(target) && !target.equals(Environment.Type.ANY) && !(target.equals(Environment.Type.COMPARABLE) && (type.equals(Environment.Type.INTEGER) || type.equals(Environment.Type.DECIMAL) || type.equals(Environment.Type.CHARACTER) || type.equals(Environment.Type.STRING)))) {
+            throw new RuntimeException("Type " + type + " is not assignable to " + target);
+        }
     }
 
 }
