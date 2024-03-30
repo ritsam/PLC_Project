@@ -50,7 +50,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     @Override
-    public Void visit(Ast.Global ast) {
+    public Void visit(Ast.Global ast) { //in prog
         Environment.Type variableType = Environment.getType(ast.getTypeName());
 
         //global var declaration has an initial value, visit + process
@@ -79,23 +79,87 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Function ast) {
-        throw new UnsupportedOperationException();  // TODO
+        List<Environment.Type> paramTypes = ast.getParameterTypeNames().stream().map(Environment::getType).collect(Collectors.toList());
+        Environment.Type returnType = ast.getReturnTypeName().map(Environment::getType).orElse(Environment.Type.NIL);
+
+        Environment.Function envFunction = scope.defineFunction(ast.getName(), ast.getName(), paramTypes, returnType, args -> Environment.NIL);
+        ast.setFunction(envFunction);
+
+        //new scope for functions body with defined parameters
+        Scope originalScope = this.scope;
+        this.scope = new Scope(originalScope);
+        for (int i = 0; i < ast.getParameters().size(); i++) {
+            this.scope.defineVariable(ast.getParameters().get(i), ast.getParameterTypeNames().get(i), paramTypes.get(i), true, Environment.NIL);
+        }
+
+        //visit each statement in functions body
+        for (Ast.Statement statement : ast.getStatements()) {
+            if (statement instanceof Ast.Statement.Expression) {
+                visit((Ast.Statement.Expression) statement);
+            } else if (statement instanceof Ast.Statement.Declaration) {
+                visit((Ast.Statement.Declaration) statement);
+            } else if (statement instanceof Ast.Statement.Assignment) {
+                visit((Ast.Statement.Assignment) statement);
+            } else if (statement instanceof Ast.Statement.If) {
+                visit((Ast.Statement.If) statement);
+            } else if (statement instanceof Ast.Statement.While) {
+                visit((Ast.Statement.While) statement);
+            } else if (statement instanceof Ast.Statement.Return) {
+                visit((Ast.Statement.Return) statement);
+            }
+            //any other statement types
+        }
+//restore scope
+        this.scope = originalScope;
+
+        return null;
     }
 
     @Override
-    public Void visit(Ast.Statement.Expression ast) {
-        throw new UnsupportedOperationException();  // TODO
+    public Void visit(Ast.Statement.Expression ast) { //in progress
+        //throw new UnsupportedOperationException();  // TODO
+        if (ast.getExpression() instanceof Ast.Expression.Function) {
+            Ast.Expression.Function functExpr = (Ast.Expression.Function) ast.getExpression();
+            visit(functExpr);
+        } else {
+            throw new RuntimeException("Only function calls are allowed as statements. Invalid expression type. ");
+        }
+        return null;
     }
 
     @Override
-    public Void visit(Ast.Statement.Declaration ast) {
-        throw new UnsupportedOperationException();  // TODO
+    public Void visit(Ast.Statement.Declaration ast) { //in progress
+        Environment.Type variableType;
+        if (ast.getTypeName().isPresent()) {
+            variableType = Environment.getType(ast.getTypeName().get());
+        } else {
+            if (ast.getValue().isPresent()) {
+                Ast.Expression valueExpression = ast.getValue().get();
+                if (valueExpression instanceof Ast.Expression.Literal) {
+                    visit((Ast.Expression.Literal) valueExpression);
+                } else if (valueExpression instanceof Ast.Expression.Binary) {
+                    visit((Ast.Expression.Binary) valueExpression);
+                }
+                variableType = valueExpression.getType();
+            } else {
+                throw new RuntimeException("Variable declaration is missing a type name or an initial value.");
+            }
+        }
+        if (ast.getValue().isPresent()) {
+            Environment.Type valueType = ast.getValue().get().getType();
+            requireAssignable(variableType, valueType);
+        }
+        try {
+            scope.defineVariable(ast.getName(), ast.getName(), variableType, true, Environment.NIL);
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error defining variable: " + ast.getName(), e);
+        }
+
+        return null;
     }
 
     @Override
     public Void visit(Ast.Statement.Assignment ast) {
-
-        //throw new UnsupportedOperationException();  // TODO
         Environment.Type valueType = ast.getValue().getType();
         Environment.Type receiverType = ast.getReceiver().getType();
         requireAssignable(receiverType, valueType);
@@ -103,7 +167,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     @Override
-    public Void visit(Ast.Statement.If ast) {
+    public Void visit(Ast.Statement.If ast) { //do next
         throw new UnsupportedOperationException();  // TODO
     }
 
@@ -128,7 +192,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     @Override
-    public Void visit(Ast.Expression.Literal ast) {
+    public Void visit(Ast.Expression.Literal ast) { //do next
         throw new UnsupportedOperationException();  // TODO
     }
 
