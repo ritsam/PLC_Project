@@ -160,6 +160,9 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Assignment ast) {
+        if (!(ast.getReceiver() instanceof Ast.Expression.Access)) {
+            throw new RuntimeException("No Access Expression");
+        }
         Environment.Type valueType = ast.getValue().getType();
         Environment.Type receiverType = ast.getReceiver().getType();
         requireAssignable(receiverType, valueType);
@@ -183,12 +186,32 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
-        throw new UnsupportedOperationException();  // TODO
+        // TODO done
+        try{
+            visit(ast.getCondition());
+            if (ast.getCondition().getType() != Environment.Type.BOOLEAN) {
+                scope = new Scope(scope);
+                for (Ast.Statement st : ast.getStatements()) {
+                    visit(st);
+                }
+            }
+    } catch (RuntimeException r) {
+        throw new RuntimeException(r);
+    }
+        return null;
     }
 
     @Override
-    public Void visit(Ast.Statement.Return ast) {
-        throw new UnsupportedOperationException();  // TODO
+    public Void visit(Ast.Statement.Return ast) { // TODO done
+        try{
+        visit(ast.getValue());
+        Environment.Variable returnType = scope.lookupVariable("returnType");
+        requireAssignable(returnType.getType(), ast.getValue().getType());
+    }
+         catch (RuntimeException e) {
+            throw new RuntimeException( e);
+        }
+        return null;
     }
 
     @Override
