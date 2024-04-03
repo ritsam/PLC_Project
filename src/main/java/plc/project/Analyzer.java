@@ -58,7 +58,8 @@ public final class Analyzer implements Ast.Visitor<Void> {
             Ast.Expression valueExpression = ast.getValue().get();
             if (valueExpression instanceof Ast.Expression.Literal) {
                 visit((Ast.Expression.Literal) valueExpression);
-            } else if (valueExpression instanceof Ast.Expression.Binary) {
+            }
+            else if (valueExpression instanceof Ast.Expression.Binary) {
                 visit((Ast.Expression.Binary) valueExpression);
             }
             Environment.Type valueType = valueExpression.getType();
@@ -70,7 +71,8 @@ public final class Analyzer implements Ast.Visitor<Void> {
         try {
             Environment.Variable definedVariable = scope.defineVariable(ast.getName(), ast.getName(), variableType, ast.getMutable(), Environment.NIL);
             ast.setVariable(definedVariable);
-        } catch (RuntimeException e) {
+        }
+        catch (RuntimeException e) {
             throw new RuntimeException("Error defining global variable: " + ast.getName(), e);
         }
 
@@ -263,14 +265,77 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException();// TODO done
+        visit(ast.getLeft());
+        visit(ast.getRight());
+
+        Environment.Type leftType = ast.getLeft().getType();
+        Environment.Type rightType = ast.getRight().getType();
+
+        switch (ast.getOperator()) {
+            case "&&":
+            case "||":
+                if (leftType.equals(Environment.Type.BOOLEAN) && rightType.equals(Environment.Type.BOOLEAN)) {
+                    ast.setType(Environment.Type.BOOLEAN);
+                } else {
+                    throw new RuntimeException("Logical operations require both operands to be Boolean.");
+                }
+                break;
+            case "<":
+            case ">":
+            case "==":
+            case "!=":
+                if ((leftType.equals(Environment.Type.INTEGER) || leftType.equals(Environment.Type.DECIMAL) ||
+                        leftType.equals(Environment.Type.CHARACTER) || leftType.equals(Environment.Type.STRING)) &&
+                        leftType.equals(rightType)) {
+                    ast.setType(Environment.Type.BOOLEAN);
+                } else {
+                    throw new RuntimeException("Comparison operations require operands of the same Comparable type.");
+                }
+                break;
+            case "+":
+                if (leftType.equals(Environment.Type.STRING) || rightType.equals(Environment.Type.STRING)) {
+                    ast.setType(Environment.Type.STRING);
+                } else if ((leftType.equals(Environment.Type.INTEGER) || leftType.equals(Environment.Type.DECIMAL)) &&
+                        (rightType.equals(Environment.Type.INTEGER) || rightType.equals(Environment.Type.DECIMAL))) {
+                    ast.setType(leftType); // Assuming leftType and rightType are the same for numeric operations
+                } else {
+                    throw new RuntimeException("Addition requires compatible types.");
+                }
+                break;
+            case "-":
+            case "*":
+            case "/":
+                if ((leftType.equals(Environment.Type.INTEGER) || leftType.equals(Environment.Type.DECIMAL)) &&
+                        (rightType.equals(Environment.Type.INTEGER) || rightType.equals(Environment.Type.DECIMAL))) {
+                    ast.setType(leftType); // Assuming leftType and rightType are the same for numeric operations
+                } else {
+                    throw new RuntimeException("Arithmetic operations require numeric types.");
+                }
+                break;
+            case "^":
+                if (leftType.equals(Environment.Type.INTEGER) && rightType.equals(Environment.Type.INTEGER)) {
+                    ast.setType(Environment.Type.INTEGER);
+                } else {
+                    throw new RuntimeException("Exponentiation requires Integer operands.");
+                }
+                break;
+            default:
+                throw new RuntimeException("Unsupported binary operator: " + ast.getOperator());
+        }
+
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException();  // TODO
+        Environment.Variable variable = scope.lookupVariable(ast.getName());
+        if (variable == null) {
+            throw new RuntimeException("Variable '" + ast.getName() + "' not found.");
+        }
+        ast.setVariable(variable);
+        return null;
 
-}
+    }
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
