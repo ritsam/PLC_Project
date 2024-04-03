@@ -277,6 +277,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
         catch (RuntimeException r) {
             throw new RuntimeException(r);
         }
+
         return null;
     }
 
