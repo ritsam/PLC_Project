@@ -314,30 +314,31 @@ public final class Analyzer implements Ast.Visitor<Void> {
         switch (ast.getOperator()) {
             case "&&":
             case "||":
-                if (leftType.equals(Environment.Type.BOOLEAN) && rightType.equals(Environment.Type.BOOLEAN)) {
-                    ast.setType(Environment.Type.BOOLEAN);
-                } else {
+                if (!leftType.equals(Environment.Type.BOOLEAN) || !rightType.equals(Environment.Type.BOOLEAN)) {
                     throw new RuntimeException("Logical operations require both operands to be Boolean.");
                 }
+                ast.setType(Environment.Type.BOOLEAN);
                 break;
             case "<":
             case ">":
             case "==":
             case "!=":
-                if ((leftType.equals(Environment.Type.INTEGER) || leftType.equals(Environment.Type.DECIMAL) ||
-                        leftType.equals(Environment.Type.CHARACTER) || leftType.equals(Environment.Type.STRING)) &&
-                        leftType.equals(rightType)) {
-                    ast.setType(Environment.Type.BOOLEAN);
-                } else {
-                    throw new RuntimeException("Comparison operations require operands of the same Comparable type.");
+                if (!leftType.equals(rightType)) {
+                    throw new RuntimeException("Comparison operations require operands of the same type.");
                 }
+                ast.setType(Environment.Type.BOOLEAN);
                 break;
             case "+":
                 if (leftType.equals(Environment.Type.STRING) || rightType.equals(Environment.Type.STRING)) {
                     ast.setType(Environment.Type.STRING);
-                } else if ((leftType.equals(Environment.Type.INTEGER) || leftType.equals(Environment.Type.DECIMAL)) &&
-                        (rightType.equals(Environment.Type.INTEGER) || rightType.equals(Environment.Type.DECIMAL))) {
-                    ast.setType(leftType); // Assuming leftType and rightType are the same for numeric operations
+                } else if ((leftType.equals(Environment.Type.INTEGER) && rightType.equals(Environment.Type.DECIMAL)) ||
+                        (leftType.equals(Environment.Type.DECIMAL) && rightType.equals(Environment.Type.INTEGER))) {
+                    // Throw a RuntimeException for Integer + Decimal or Decimal + Integer
+                    throw new RuntimeException("Cannot perform addition between Integer and Decimal.");
+                } else if (leftType.equals(Environment.Type.INTEGER) && rightType.equals(Environment.Type.INTEGER)) {
+                    ast.setType(Environment.Type.INTEGER);
+                } else if (leftType.equals(Environment.Type.DECIMAL) && rightType.equals(Environment.Type.DECIMAL)) {
+                    ast.setType(Environment.Type.DECIMAL);
                 } else {
                     throw new RuntimeException("Addition requires compatible types.");
                 }
@@ -345,9 +346,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
             case "-":
             case "*":
             case "/":
-                if ((leftType.equals(Environment.Type.INTEGER) || leftType.equals(Environment.Type.DECIMAL)) &&
-                        (rightType.equals(Environment.Type.INTEGER) || rightType.equals(Environment.Type.DECIMAL))) {
-                    ast.setType(leftType); // Assuming leftType and rightType are the same for numeric operations
+                if (leftType.equals(Environment.Type.DECIMAL) || rightType.equals(Environment.Type.DECIMAL)) {
+                    ast.setType(Environment.Type.DECIMAL);
+                } else if (leftType.equals(Environment.Type.INTEGER) && rightType.equals(Environment.Type.INTEGER)) {
+                    ast.setType(Environment.Type.INTEGER);
                 } else {
                     throw new RuntimeException("Arithmetic operations require numeric types.");
                 }
