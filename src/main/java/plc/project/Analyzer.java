@@ -204,12 +204,40 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Switch ast) {
-        throw new UnsupportedOperationException();  // TODO
+        //throw new UnsupportedOperationException();  // TODO
+        Scope originalScope = this.scope;
+        scope = new Scope(originalScope);
+        try {
+            Ast.Expression sw = ast.getCondition();
+            visit(sw);
+            boolean hasCase = false;
+            for (Ast.Statement.Case switchCase : ast.getCases()) {
+                if (switchCase.getValue().isEmpty() || sw.equals(switchCase.getValue().get())) {
+                    hasCase = true;
+                    visit(switchCase);
+                    break;
+                }
+            }
+        }
+        finally {
+            this.scope = originalScope;
+        }
+        return null;
     }
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
-        throw new UnsupportedOperationException();  // TODO
+        //throw new UnsupportedOperationException();  // TODO
+        Scope originalScope = this.scope;
+        scope = new Scope(originalScope);
+        if (ast.getValue().isPresent()) {
+            visit(ast.getValue().get());
+        }
+        for (Ast.Statement statement : ast.getStatements()) {
+            visit(statement);
+        }
+        this.scope = originalScope;
+        return null;
     }
 
     @Override
@@ -298,7 +326,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException();// TODO done
+        throw new UnsupportedOperationException();// TODO
     }
 
     @Override
@@ -310,6 +338,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Expression.Function ast) {
         throw new UnsupportedOperationException();  // TODO
+
     }
 
     @Override
