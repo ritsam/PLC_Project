@@ -137,30 +137,22 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Declaration ast) { //in progress
-        Environment.Type variableType;
+        Environment.Type declaredType;
         if (ast.getTypeName().isPresent()) {
-            variableType = Environment.getType(ast.getTypeName().get());
+            declaredType = Environment.getType(ast.getTypeName().get());
+        } else if (ast.getValue().isPresent()) {
+            visit(ast.getValue().get());
+            declaredType = ast.getValue().get().getType();
         } else {
-            if (ast.getValue().isPresent()) {
-                Ast.Expression valueExpression = ast.getValue().get();
-                if (valueExpression instanceof Ast.Expression.Literal) {
-                    visit((Ast.Expression.Literal) valueExpression);
-                } else if (valueExpression instanceof Ast.Expression.Binary) {
-                    visit((Ast.Expression.Binary) valueExpression);
-                }
-                variableType = valueExpression.getType();
-            } else {
-                throw new RuntimeException("Variable declaration is missing a type name or an initial value.");
-            }
+            throw new RuntimeException("Declaration requires either a type or an initial value.");
         }
+
+        Environment.Variable definedVariable = scope.defineVariable(ast.getName(), ast.getName(), declaredType, true, Environment.NIL);
+
+        ast.setVariable(definedVariable);
+
         if (ast.getValue().isPresent()) {
-            Environment.Type valueType = ast.getValue().get().getType();
-            requireAssignable(variableType, valueType);
-        }
-        try {
-            scope.defineVariable(ast.getName(), ast.getName(), variableType, true, Environment.NIL);
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Error defining variable: " + ast.getName(), e);
+            requireAssignable(declaredType, ast.getValue().get().getType());
         }
 
         return null;
