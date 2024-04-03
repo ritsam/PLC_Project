@@ -118,6 +118,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     @Override
+
     public Void visit(Ast.Statement.Expression ast) { //in progress
         //throw new UnsupportedOperationException();  // TODO
         if (ast.getExpression() instanceof Ast.Expression.Function) {
@@ -172,7 +173,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     @Override
-    public Void visit(Ast.Statement.If ast) { //do next
+    public Void visit(Ast.Statement.If ast) {
         Ast.Function currentFunction = this.function;
 
         visit(ast.getCondition());
@@ -244,8 +245,42 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     @Override
-    public Void visit(Ast.Expression.Literal ast) { //do next
-        throw new UnsupportedOperationException();  // TODO
+    public Void visit(Ast.Expression.Literal ast) {
+        //throw new UnsupportedOperationException();  // TODO
+        //exception: integer and decimal
+
+        try {
+            if (ast.getLiteral() == Environment.NIL) {
+                ast.setType(Environment.Type.NIL);
+            }
+            if (ast.getLiteral() instanceof Boolean) {
+                ast.setType(Environment.Type.BOOLEAN);
+            }
+            if (ast.getLiteral() instanceof Character) {
+                ast.setType(Environment.Type.CHARACTER);
+            }
+            if (ast.getLiteral() instanceof String) {
+                ast.setType(Environment.Type.STRING);
+            }
+            if (ast.getLiteral() instanceof BigInteger) {
+                if (((BigInteger)(ast.getLiteral())).compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) >= 0 && (((BigInteger) (ast.getLiteral())).compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) <= 0 ))
+                    ast.setType(Environment.Type.INTEGER);
+                else
+                    throw new RuntimeException("Integer is not in range.");
+                return null;
+            }
+            if (ast.getLiteral() instanceof BigDecimal) {
+                if (((BigDecimal)(ast.getLiteral())).compareTo(BigDecimal.valueOf(Double.MAX_VALUE)) <= 0 && (((BigDecimal)(ast.getLiteral())).compareTo(BigDecimal.valueOf(Double.MIN_VALUE)) >= 0))
+                    ast.setType(Environment.Type.DECIMAL);
+                else
+                    throw new RuntimeException("Decimal is not in range.");
+                return null;
+            }
+        }
+        catch (RuntimeException r) {
+            throw new RuntimeException(r);
+        }
+        return null;
     }
 
     @Override
@@ -349,9 +384,13 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {
         //throw new UnsupportedOperationException();  // TODO
-        if (!type.equals(target) && !target.equals(Environment.Type.ANY) && !(target.equals(Environment.Type.COMPARABLE) && (type.equals(Environment.Type.INTEGER) || type.equals(Environment.Type.DECIMAL) || type.equals(Environment.Type.CHARACTER) || type.equals(Environment.Type.STRING)))) {
-            throw new RuntimeException("Type " + type + " is not assignable to " + target);
+        try {
+            if (!type.equals(target) && !target.equals(Environment.Type.ANY) && !(target.equals(Environment.Type.COMPARABLE) && (type.equals(Environment.Type.INTEGER) || type.equals(Environment.Type.DECIMAL) || type.equals(Environment.Type.CHARACTER) || type.equals(Environment.Type.STRING)))) {
+                throw new RuntimeException("Type " + type + " is not assignable to " + target);
+            }
+        } catch (RuntimeException r) {
+            throw new RuntimeException(r);
         }
     }
 
-}
+    }
