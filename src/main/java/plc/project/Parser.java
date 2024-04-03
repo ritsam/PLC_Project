@@ -108,13 +108,19 @@ public final class Parser {
             throw new ParseException("Expected identifier after VAR", tokens.get(-1).getIndex());
         }
         String identifier = tokens.get(-1).getLiteral();
+        if (!match(":")) {
+            throw new ParseException("Expected ':' after identifier", tokens.get(-1).getIndex());
+        }
+        if (!match(Token.Type.IDENTIFIER)) {
+            throw new ParseException("Expected type identifier after ':'", tokens.get(-1).getIndex());
+        }
+        String typeName = tokens.get(-1).getLiteral();
         Optional<Ast.Expression> value = Optional.empty();
-        // check for optional expression after =
         if (match("=")) {
             value = Optional.of(parseExpression());
         }
         match(";");
-        return new Ast.Global(identifier, true, value);
+        return new Ast.Global(identifier, typeName, true, value);
     }
 
     /**
@@ -234,10 +240,19 @@ public final class Parser {
         //TODO
         // 'LET' identifier ('=' expression)? ';'
         match("LET");
-        if (!match(Token.Type.IDENTIFIER)){
-            throw new ParseException("Expected Identifier", -1);
+        if (!match(Token.Type.IDENTIFIER)) {
+            throw new ParseException("Expected Identifier", tokens.get(-1).getIndex());
         }
         String name = tokens.get(-1).getLiteral(); //identifier
+
+        Optional<String> typeName = Optional.empty();
+        if (match(":")) { // Check for type annotation after the variable name
+            if (!match(Token.Type.IDENTIFIER)) {
+                throw new ParseException("Expected type identifier after ':'", tokens.get(-1).getIndex());
+            }
+            typeName = Optional.of(tokens.get(-1).getLiteral()); // Get the type name
+        }
+
         Optional<Ast.Expression> value = Optional.empty();
         if (match("=")) {
             value = Optional.of(parseExpression());
@@ -245,7 +260,7 @@ public final class Parser {
         if (!match(";")) {
             throw new ParseException("Expected ';'", tokens.get(-1).getIndex());
         }
-        return new Ast.Statement.Declaration(name, value);
+        return new Ast.Statement.Declaration(name, typeName, value);
     }
 
     /**
