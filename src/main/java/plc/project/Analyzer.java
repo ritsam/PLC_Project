@@ -98,15 +98,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
         for (Ast.Statement statement : ast.getStatements()) {
             if (statement instanceof Ast.Statement.Expression) {
                 visit((Ast.Statement.Expression) statement);
-            } else if (statement instanceof Ast.Statement.Declaration) {
+            }
+            else if (statement instanceof Ast.Statement.Declaration) {
                 visit((Ast.Statement.Declaration) statement);
-            } else if (statement instanceof Ast.Statement.Assignment) {
+            }
+            else if (statement instanceof Ast.Statement.Assignment) {
                 visit((Ast.Statement.Assignment) statement);
-            } else if (statement instanceof Ast.Statement.If) {
+            }
+            else if (statement instanceof Ast.Statement.If) {
                 visit((Ast.Statement.If) statement);
-            } else if (statement instanceof Ast.Statement.While) {
+            }
+            else if (statement instanceof Ast.Statement.While) {
                 visit((Ast.Statement.While) statement);
-            } else if (statement instanceof Ast.Statement.Return) {
+            }
+            else if (statement instanceof Ast.Statement.Return) {
                 visit((Ast.Statement.Return) statement);
             }
             //any other statement types
@@ -225,20 +230,21 @@ public final class Analyzer implements Ast.Visitor<Void> {
                     visit(st);
                 }
             }
-    } catch (RuntimeException r) {
-        throw new RuntimeException(r);
-    }
+        }
+        catch (RuntimeException r) {
+            throw new RuntimeException(r);
+        }
         return null;
     }
 
     @Override
     public Void visit(Ast.Statement.Return ast) { // TODO done
         try{
-        visit(ast.getValue());
-        Environment.Variable returnType = scope.lookupVariable("returnType");
-        requireAssignable(returnType.getType(), ast.getValue().getType());
-    }
-         catch (RuntimeException e) {
+            visit(ast.getValue());
+            Environment.Variable returnType = scope.lookupVariable("returnType");
+            requireAssignable(returnType.getType(), ast.getValue().getType());
+        }
+        catch (RuntimeException e) {
             throw new RuntimeException( e);
         }
         return null;
@@ -248,7 +254,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Expression.Literal ast) {
         //throw new UnsupportedOperationException();  // TODO
         //exception: integer and decimal
-
         try {
             if (ast.getLiteral() == Environment.NIL) {
                 ast.setType(Environment.Type.NIL);
@@ -285,16 +290,16 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-          // TODO done
+        // TODO done
         try {
             if (ast.getExpression() instanceof Ast.Expression.Binary) {
                 visit(ast.getExpression());
                 ast.setType(ast.getExpression().getType());
             }
         }
-         catch (RuntimeException r) {
-                throw new RuntimeException("No Ast.Expression.Binary");
-            }
+        catch (RuntimeException r) {
+            throw new RuntimeException("No Ast.Expression.Binary");
+        }
         return null;
     }
 
@@ -369,7 +374,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
         }
         ast.setVariable(variable);
         return null;
-
     }
 
     @Override
@@ -388,9 +392,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
             if (!type.equals(target) && !target.equals(Environment.Type.ANY) && !(target.equals(Environment.Type.COMPARABLE) && (type.equals(Environment.Type.INTEGER) || type.equals(Environment.Type.DECIMAL) || type.equals(Environment.Type.CHARACTER) || type.equals(Environment.Type.STRING)))) {
                 throw new RuntimeException("Type " + type + " is not assignable to " + target);
             }
-        } catch (RuntimeException r) {
+        }
+        catch (RuntimeException r) {
             throw new RuntimeException(r);
         }
     }
 
-    }
+}
