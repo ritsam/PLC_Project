@@ -169,11 +169,23 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Statement.Assignment ast) {
         if (!(ast.getReceiver() instanceof Ast.Expression.Access)) {
-            throw new RuntimeException("No Access Expression");
+            throw new RuntimeException("Assignment receiver must be an access expression.");
         }
+        visit(ast.getValue());
+
+        visit(ast.getReceiver());
+
         Environment.Type valueType = ast.getValue().getType();
-        Environment.Type receiverType = ast.getReceiver().getType();
+        Ast.Expression.Access accessReceiver = (Ast.Expression.Access) ast.getReceiver();
+
+        if (accessReceiver.getVariable() == null) {
+            throw new RuntimeException("Variable not found: " + accessReceiver.getName());
+        }
+
+        Environment.Type receiverType = accessReceiver.getVariable().getType();
+
         requireAssignable(receiverType, valueType);
+
         return null;
     }
 
