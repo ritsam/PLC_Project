@@ -172,6 +172,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Statement.If ast) { //do next
         throw new UnsupportedOperationException();  // TODO
+
     }
 
     @Override
@@ -221,18 +222,29 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        throw new UnsupportedOperationException();  // TODO
+          // TODO done
+        try {
+            if (ast.getExpression() instanceof Ast.Expression.Binary) {
+                visit(ast.getExpression());
+                ast.setType(ast.getExpression().getType());
+            }
+        }
+         catch (RuntimeException r) {
+                throw new RuntimeException("No Ast.Expression.Binary");
+            }
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException();  // TODO
+        throw new UnsupportedOperationException();// TODO done
     }
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
         throw new UnsupportedOperationException();  // TODO
-    }
+
+}
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
