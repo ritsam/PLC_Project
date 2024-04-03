@@ -52,8 +52,6 @@ public final class Parser {
      * next tokens start a global, aka {@code LIST|VAL|VAR}.
      */
     public Ast.Global parseGlobal() throws ParseException {
-        //--Unexpected ParseException (Expected global declaration)
-
         if (peek("LIST")) {
             return parseList();
         } else if (peek("VAR")) {
@@ -71,7 +69,6 @@ public final class Parser {
      */
     public Ast.Global parseList() throws ParseException {
         // 'LIST' identifier '=' '[' expression (',' expression)* ']'
-        //TODO
         match("LIST");
         if (!match(Token.Type.IDENTIFIER)) {
             throw new ParseException("Expected identifier after LIST", tokens.get(-1).getIndex());
@@ -102,7 +99,7 @@ public final class Parser {
      * next token declares a mutable global variable, aka {@code VAR}.
      */
     public Ast.Global parseMutable() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
+ //TODO
         match("VAR");
         if (!match(Token.Type.IDENTIFIER)) {
             throw new ParseException("Expected identifier after VAR", tokens.get(-1).getIndex());
@@ -128,22 +125,28 @@ public final class Parser {
      * next token declares an immutable global variable, aka {@code VAL}.
      */
     public Ast.Global parseImmutable() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
+        //TODO
         match("VAL");
         if (!match(Token.Type.IDENTIFIER)) {
             throw new ParseException("Expected identifier after VAL", tokens.get(-1).getIndex());
         }
         String identifier = tokens.get(-1).getLiteral();
-        Optional<Ast.Expression> value = Optional.empty();
-        // check for optional expression after =
-        if (match("=")) {
-            value = Optional.of(parseExpression());
+
+        if (!match(":")) {
+            throw new ParseException("Expected ':' after identifier for type annotation", tokens.get(-1).getIndex());
         }
-        else {
-            throw new ParseException("Expected = after VAL identifier", tokens.get(-1).getIndex());
+        if (!match(Token.Type.IDENTIFIER)) {
+            throw new ParseException("Expected type identifier after ':'", tokens.get(-1).getIndex());
         }
+        String typeName = tokens.get(-1).getLiteral();
+
+        if (!match("=")) {
+            throw new ParseException("Expected '=' after type annotation", tokens.get(-1).getIndex());
+        }
+        Ast.Expression value = parseExpression();
+
         match(";");
-        return new Ast.Global(identifier, false, value);
+        return new Ast.Global(identifier, typeName, false, Optional.of(value));
     }
 
     /**
@@ -151,31 +154,56 @@ public final class Parser {
      * next tokens start a method, aka {@code FUN}.
      */
     public Ast.Function parseFunction() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
         match("FUN");
         if (!match(Token.Type.IDENTIFIER)) {
             throw new ParseException("Expected identifier after FUN", tokens.get(-1).getIndex());
         }
         String functionName = tokens.get(-1).getLiteral();
+
         List<String> parameters = new ArrayList<>();
+        List<String> parameterTypeNames = new ArrayList<>();
         //parameters
         if (match("(")) {
             // check for parameters
+            while (!peek(")")) {
+                if (!match(Token.Type.IDENTIFIER)) {
+                    throw new ParseException("Expected identifier for function parameter", tokens.get(-1).getIndex());
+                }
+                String parameterName = tokens.get(-1).getLiteral();
+
+                if (!match(":")) {
+                    throw new ParseException("Expected ':' after parameter name for type annotation", tokens.get(-1).getIndex());
+                }
+                if (!match(Token.Type.IDENTIFIER)) {
+                    throw new ParseException("Expected type identifier after ':' for parameter type", tokens.get(-1).getIndex());
+                }
+                String parameterTypeName = tokens.get(-1).getLiteral();
+
+                parameters.add(parameterName);
+                parameterTypeNames.add(parameterTypeName);
+
+                if (!match(",")) { //stop parsing parameters
+                    break;
+                }
+            }
             if (!match(")")) {
-                do {
-                    if (!match(Token.Type.IDENTIFIER)) {
-                        throw new ParseException("Expected identifier for function parameter", tokens.get(-1).getIndex());
-                    }
-                    parameters.add(tokens.get(-1).getLiteral());
-                } while (match(","));
-                match(")");
+                throw new ParseException("Expected ')' after parameters", tokens.get(-1).getIndex());
             }
         }
+
+        String returnTypeName = "Any";
+        if (match(":")) {
+            if (!match(Token.Type.IDENTIFIER)) {
+                throw new ParseException("Expected type identifier after ':' for return type", tokens.get(-1).getIndex());
+            }
+            returnTypeName = tokens.get(-1).getLiteral();
+        }
+
         match("DO");
         // parse body of function
         List<Ast.Statement> statements = parseBlock();
         match("END");
-        return new Ast.Function(functionName, parameters, statements);
+        return new Ast.Function(functionName, parameters, parameterTypeNames,  Optional.of(returnTypeName), statements);
     }
 
     /**
@@ -183,7 +211,7 @@ public final class Parser {
      * preceding token indicates the opening a block of statements.
      */
     public List<Ast.Statement> parseBlock() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO
+        //TODO
         List<Ast.Statement> statements = new ArrayList<>();
         while (!match("END")) {
             int start = tokens.index;
@@ -246,11 +274,11 @@ public final class Parser {
         String name = tokens.get(-1).getLiteral(); //identifier
 
         Optional<String> typeName = Optional.empty();
-        if (match(":")) { // Check for type annotation after the variable name
+        if (match(":")) {
             if (!match(Token.Type.IDENTIFIER)) {
                 throw new ParseException("Expected type identifier after ':'", tokens.get(-1).getIndex());
             }
-            typeName = Optional.of(tokens.get(-1).getLiteral()); // Get the type name
+            typeName = Optional.of(tokens.get(-1).getLiteral());
         }
 
         Optional<Ast.Expression> value = Optional.empty();
@@ -272,7 +300,6 @@ public final class Parser {
         //TODO 'IF' expression 'DO' block ('ELSE' block)? 'END'
         try {
             if (match("IF")) {
-                //match("IF");
                 Ast.Expression condition = parseExpression();
                 if (!match("DO")) {
                     throw new ParseException("Expected 'DO' after IF condition", tokens.get(-1).getIndex());
@@ -288,7 +315,6 @@ public final class Parser {
                         el.add(parseStatement());
                     }
                 }
-                //match("END");
                 if(match("END")){
                     return new Ast.Statement.If(condition, then, el);
                 }
@@ -408,7 +434,7 @@ public final class Parser {
      * Parses the {@code logical-expression} rule.
      */
     public Ast.Expression parseLogicalExpression() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO 2a
+        //TODO 2a
         Ast.Expression currentExpression = parseComparisonExpression();
         while (match("&&") || match("||")) {
             String operation = tokens.get(-1).getLiteral();
@@ -422,7 +448,7 @@ public final class Parser {
      * Parses the {@code comparison-expression} rule.
      */
     public Ast.Expression parseComparisonExpression() throws ParseException {
-        //throw new UnsupportedOperationException(); //TODO 2a
+        //TODO 2a
         Ast.Expression currentExpression = parseAdditiveExpression();
         while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
             String operation = tokens.get(-1).getLiteral();
