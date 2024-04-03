@@ -246,6 +246,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Expression.Literal ast) {
         //throw new UnsupportedOperationException();  // TODO
         //exception: integer and decimal
+
         try {
             if (ast.getLiteral() == Environment.NIL) {
                 ast.setType(Environment.Type.NIL);
@@ -277,7 +278,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
         catch (RuntimeException r) {
             throw new RuntimeException(r);
         }
-
         return null;
     }
 
