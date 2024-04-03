@@ -58,7 +58,8 @@ public final class Analyzer implements Ast.Visitor<Void> {
             Ast.Expression valueExpression = ast.getValue().get();
             if (valueExpression instanceof Ast.Expression.Literal) {
                 visit((Ast.Expression.Literal) valueExpression);
-            } else if (valueExpression instanceof Ast.Expression.Binary) {
+            }
+            else if (valueExpression instanceof Ast.Expression.Binary) {
                 visit((Ast.Expression.Binary) valueExpression);
             }
             Environment.Type valueType = valueExpression.getType();
@@ -70,7 +71,8 @@ public final class Analyzer implements Ast.Visitor<Void> {
         try {
             Environment.Variable definedVariable = scope.defineVariable(ast.getName(), ast.getName(), variableType, ast.getMutable(), Environment.NIL);
             ast.setVariable(definedVariable);
-        } catch (RuntimeException e) {
+        }
+        catch (RuntimeException e) {
             throw new RuntimeException("Error defining global variable: " + ast.getName(), e);
         }
 
@@ -96,15 +98,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
         for (Ast.Statement statement : ast.getStatements()) {
             if (statement instanceof Ast.Statement.Expression) {
                 visit((Ast.Statement.Expression) statement);
-            } else if (statement instanceof Ast.Statement.Declaration) {
+            }
+            else if (statement instanceof Ast.Statement.Declaration) {
                 visit((Ast.Statement.Declaration) statement);
-            } else if (statement instanceof Ast.Statement.Assignment) {
+            }
+            else if (statement instanceof Ast.Statement.Assignment) {
                 visit((Ast.Statement.Assignment) statement);
-            } else if (statement instanceof Ast.Statement.If) {
+            }
+            else if (statement instanceof Ast.Statement.If) {
                 visit((Ast.Statement.If) statement);
-            } else if (statement instanceof Ast.Statement.While) {
+            }
+            else if (statement instanceof Ast.Statement.While) {
                 visit((Ast.Statement.While) statement);
-            } else if (statement instanceof Ast.Statement.Return) {
+            }
+            else if (statement instanceof Ast.Statement.Return) {
                 visit((Ast.Statement.Return) statement);
             }
             //any other statement types
@@ -204,40 +211,12 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Switch ast) {
-        //throw new UnsupportedOperationException();  // TODO
-        Scope originalScope = this.scope;
-        scope = new Scope(originalScope);
-        try {
-            Ast.Expression sw = ast.getCondition();
-            visit(sw);
-            boolean hasCase = false;
-            for (Ast.Statement.Case switchCase : ast.getCases()) {
-                if (switchCase.getValue().isEmpty() || sw.equals(switchCase.getValue().get())) {
-                    hasCase = true;
-                    visit(switchCase);
-                    break;
-                }
-            }
-        }
-        finally {
-            this.scope = originalScope;
-        }
-        return null;
+        throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
-        //throw new UnsupportedOperationException();  // TODO
-        Scope originalScope = this.scope;
-        scope = new Scope(originalScope);
-        if (ast.getValue().isPresent()) {
-            visit(ast.getValue().get());
-        }
-        for (Ast.Statement statement : ast.getStatements()) {
-            visit(statement);
-        }
-        this.scope = originalScope;
-        return null;
+        throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
@@ -251,20 +230,21 @@ public final class Analyzer implements Ast.Visitor<Void> {
                     visit(st);
                 }
             }
-    } catch (RuntimeException r) {
-        throw new RuntimeException(r);
-    }
+        }
+        catch (RuntimeException r) {
+            throw new RuntimeException(r);
+        }
         return null;
     }
 
     @Override
     public Void visit(Ast.Statement.Return ast) { // TODO done
         try{
-        visit(ast.getValue());
-        Environment.Variable returnType = scope.lookupVariable("returnType");
-        requireAssignable(returnType.getType(), ast.getValue().getType());
-    }
-         catch (RuntimeException e) {
+            visit(ast.getValue());
+            Environment.Variable returnType = scope.lookupVariable("returnType");
+            requireAssignable(returnType.getType(), ast.getValue().getType());
+        }
+        catch (RuntimeException e) {
             throw new RuntimeException( e);
         }
         return null;
@@ -274,7 +254,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Expression.Literal ast) {
         //throw new UnsupportedOperationException();  // TODO
         //exception: integer and decimal
-
         try {
             if (ast.getLiteral() == Environment.NIL) {
                 ast.setType(Environment.Type.NIL);
@@ -311,34 +290,97 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-          // TODO done
+        // TODO done
         try {
             if (ast.getExpression() instanceof Ast.Expression.Binary) {
                 visit(ast.getExpression());
                 ast.setType(ast.getExpression().getType());
             }
         }
-         catch (RuntimeException r) {
-                throw new RuntimeException("No Ast.Expression.Binary");
-            }
+        catch (RuntimeException r) {
+            throw new RuntimeException("No Ast.Expression.Binary");
+        }
         return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException();// TODO
+        visit(ast.getLeft());
+        visit(ast.getRight());
+
+        Environment.Type leftType = ast.getLeft().getType();
+        Environment.Type rightType = ast.getRight().getType();
+
+        switch (ast.getOperator()) {
+            case "&&":
+            case "||":
+                if (!leftType.equals(Environment.Type.BOOLEAN) || !rightType.equals(Environment.Type.BOOLEAN)) {
+                    throw new RuntimeException("Logical operations require both operands to be Boolean.");
+                }
+                ast.setType(Environment.Type.BOOLEAN);
+                break;
+            case "<":
+            case ">":
+            case "==":
+            case "!=":
+                if (!leftType.equals(rightType)) {
+                    throw new RuntimeException("Comparison operations require operands of the same type.");
+                }
+                ast.setType(Environment.Type.BOOLEAN);
+                break;
+            case "+":
+                if (leftType.equals(Environment.Type.STRING) || rightType.equals(Environment.Type.STRING)) {
+                    ast.setType(Environment.Type.STRING);
+                } else if ((leftType.equals(Environment.Type.INTEGER) && rightType.equals(Environment.Type.DECIMAL)) ||
+                        (leftType.equals(Environment.Type.DECIMAL) && rightType.equals(Environment.Type.INTEGER))) {
+                    // Throw a RuntimeException for Integer + Decimal or Decimal + Integer
+                    throw new RuntimeException("Cannot perform addition between Integer and Decimal.");
+                } else if (leftType.equals(Environment.Type.INTEGER) && rightType.equals(Environment.Type.INTEGER)) {
+                    ast.setType(Environment.Type.INTEGER);
+                } else if (leftType.equals(Environment.Type.DECIMAL) && rightType.equals(Environment.Type.DECIMAL)) {
+                    ast.setType(Environment.Type.DECIMAL);
+                } else {
+                    throw new RuntimeException("Addition requires compatible types.");
+                }
+                break;
+            case "-":
+            case "*":
+            case "/":
+                if (leftType.equals(Environment.Type.DECIMAL) || rightType.equals(Environment.Type.DECIMAL)) {
+                    ast.setType(Environment.Type.DECIMAL);
+                } else if (leftType.equals(Environment.Type.INTEGER) && rightType.equals(Environment.Type.INTEGER)) {
+                    ast.setType(Environment.Type.INTEGER);
+                } else {
+                    throw new RuntimeException("Arithmetic operations require numeric types.");
+                }
+                break;
+            case "^":
+                if (leftType.equals(Environment.Type.INTEGER) && rightType.equals(Environment.Type.INTEGER)) {
+                    ast.setType(Environment.Type.INTEGER);
+                } else {
+                    throw new RuntimeException("Exponentiation requires Integer operands.");
+                }
+                break;
+            default:
+                throw new RuntimeException("Unsupported binary operator: " + ast.getOperator());
+        }
+
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException();  // TODO
-
+        Environment.Variable variable = scope.lookupVariable(ast.getName());
+        if (variable == null) {
+            throw new RuntimeException("Variable '" + ast.getName() + "' not found.");
+        }
+        ast.setVariable(variable);
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
         throw new UnsupportedOperationException();  // TODO
-
     }
 
     @Override
@@ -352,9 +394,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
             if (!type.equals(target) && !target.equals(Environment.Type.ANY) && !(target.equals(Environment.Type.COMPARABLE) && (type.equals(Environment.Type.INTEGER) || type.equals(Environment.Type.DECIMAL) || type.equals(Environment.Type.CHARACTER) || type.equals(Environment.Type.STRING)))) {
                 throw new RuntimeException("Type " + type + " is not assignable to " + target);
             }
-        } catch (RuntimeException r) {
+        }
+        catch (RuntimeException r) {
             throw new RuntimeException(r);
         }
     }
 
-    }
+}
