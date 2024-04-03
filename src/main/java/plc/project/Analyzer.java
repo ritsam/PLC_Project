@@ -171,7 +171,33 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.If ast) { //do next
-        throw new UnsupportedOperationException();  // TODO
+        Ast.Function currentFunction = this.function;
+
+        visit(ast.getCondition());
+
+        if (!ast.getCondition().getType().equals(Environment.Type.BOOLEAN)) {
+            throw new RuntimeException("The condition of an 'if' statement must be of type Boolean.");
+        }
+
+        Scope originalScope = this.scope;
+        this.scope = new Scope(originalScope);
+
+        for (Ast.Statement thenStatement : ast.getThenStatements()) {
+            visit(thenStatement);
+        }
+        this.scope = originalScope;
+
+        if (ast.getElseStatements() != null) {
+            this.scope = new Scope(originalScope);
+            for (Ast.Statement elseStatement : ast.getElseStatements()) {
+                visit(elseStatement);
+            }
+            this.scope = originalScope;
+        }
+
+        this.function = currentFunction;
+
+        return null;
 
     }
 
