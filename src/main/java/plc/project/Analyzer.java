@@ -215,12 +215,40 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Switch ast) {
-        throw new UnsupportedOperationException();  // TODO
+        //throw new UnsupportedOperationException();  // TODO
+            Scope originalScope = this.scope;
+            scope = new Scope(originalScope);
+        try {
+            Ast.Expression swi = ast.getCondition();
+            visit(swi);
+            boolean hasCase = false;
+            for (Ast.Statement.Case switchCase : ast.getCases()) {
+                if (switchCase.getValue().isEmpty() || swi.equals(switchCase.getValue().get())) {
+                    hasCase = true;
+                    visit(switchCase);
+                    break;
+                }
+            }
+        }
+        finally{
+            scope = originalScope;
+        }
+        return null;
     }
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
-        throw new UnsupportedOperationException();  // TODO
+        //throw new UnsupportedOperationException();  // TODO
+        Scope originalScope = this.scope;
+        scope = new Scope(originalScope);
+        if (ast.getValue().isPresent()) {
+            visit(ast.getValue().get());
+        }
+        for (Ast.Statement stmt : ast.getStatements()) {
+            visit(stmt);
+        }
+        scope = originalScope;
+        return null;
     }
 
     @Override
