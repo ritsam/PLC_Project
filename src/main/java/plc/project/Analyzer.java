@@ -114,7 +114,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
             else if (statement instanceof Ast.Statement.Return) {
                 visit((Ast.Statement.Return) statement);
             }
-            //any other statement types
         }
 //restore scope
         this.scope = originalScope;
@@ -191,6 +190,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
             throw new RuntimeException("The condition of an 'if' statement must be of type Boolean.");
         }
 
+        if (ast.getThenStatements().isEmpty()) {
+            throw new RuntimeException("The 'then' block of an 'if' statement cannot be empty.");
+        }
+
         Scope originalScope = this.scope;
         this.scope = new Scope(originalScope);
 
@@ -199,7 +202,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
         }
         this.scope = originalScope;
 
-        if (ast.getElseStatements() != null) {
+        if (!ast.getElseStatements().isEmpty()) {
             this.scope = new Scope(originalScope);
             for (Ast.Statement elseStatement : ast.getElseStatements()) {
                 visit(elseStatement);
@@ -210,7 +213,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
         this.function = currentFunction;
 
         return null;
-
     }
 
     @Override
@@ -412,12 +414,44 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
-        throw new UnsupportedOperationException();  // TODO
+        Environment.Function function = scope.lookupFunction(ast.getName(), ast.getArguments().size());
+        if (function == null) {
+            throw new RuntimeException("Function '" + ast.getName() + "' with " + ast.getArguments().size() + " arguments not found.");
+        }
+        ast.setFunction(function);
+
+        for (int i = 0; i < ast.getArguments().size(); i++) {
+            Ast.Expression argument = ast.getArguments().get(i);
+            visit(argument);
+
+            Environment.Type expectedType = function.getParameterTypes().get(i);
+            Environment.Type actualType = argument.getType();
+            requireAssignable(expectedType, actualType);
+        }
+
+        return null;
     }
 
     @Override
-    public Void visit(Ast.Expression.PlcList ast) {
-        throw new UnsupportedOperationException();  // TODO
+    public Void visit(Ast.Expression.PlcList ast) { /// IN PROGRESS
+        if (ast.getValues().isEmpty()) {
+            return null;
+        }
+
+        visit(ast.getValues().get(0));
+        Environment.Type expectedType = ast.getValues().get(0).getType();
+
+        for (int i = 1; i < ast.getValues().size(); i++) {
+            Ast.Expression value = ast.getValues().get(i);
+            visit(value);
+
+            Environment.Type valueType = value.getType();
+            if (!valueType.equals(expectedType)) {
+                throw new RuntimeException("All elements in the list must have the same type. Expected " + expectedType + ", found " + valueType + ".");
+            }
+        }
+
+        return null;
     }
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {
