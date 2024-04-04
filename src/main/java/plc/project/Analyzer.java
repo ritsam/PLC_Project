@@ -135,7 +135,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     @Override
-    public Void visit(Ast.Statement.Declaration ast) { //in progress
+    public Void visit(Ast.Statement.Declaration ast) {
         Environment.Type declaredType;
         if (ast.getTypeName().isPresent()) {
             declaredType = Environment.getType(ast.getTypeName().get());
@@ -217,30 +217,43 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Switch ast) {
-        //throw new UnsupportedOperationException();  // TODO
-            Scope originalScope = this.scope;
-            scope = new Scope(originalScope);
-        try {
-            Ast.Expression swi = ast.getCondition();
-            visit(swi);
-            boolean hasCase = false;
-            for (Ast.Statement.Case switchCase : ast.getCases()) {
-                if (switchCase.getValue().isEmpty() || swi.equals(switchCase.getValue().get())) {
-                    hasCase = true;
-                    visit(switchCase);
-                    break;
+        visit(ast.getCondition());
+        Environment.Type conditionType = ast.getCondition().getType();
+
+        boolean defaultCaseFound = false;
+        Scope originalScope = this.scope;
+
+        for (int i = 0; i < ast.getCases().size(); i++) {
+            Ast.Statement.Case switchCase = ast.getCases().get(i);
+            this.scope = new Scope(originalScope);
+
+            if (switchCase.getValue().isPresent()) {
+                //validate case value type matches condition type
+                visit(switchCase.getValue().get());
+                Environment.Type caseValueType = switchCase.getValue().get().getType();
+                if (!caseValueType.equals(conditionType)) {
+                    throw new RuntimeException("Case value type does not match the type of the condition.");
                 }
             }
+            else {
+                if (defaultCaseFound || i != ast.getCases().size() - 1) {
+                    throw new RuntimeException("DEFAULT case must be the last case and appear only once.");
+                }
+                defaultCaseFound = true;
+            }
+
+            for (Ast.Statement statement : switchCase.getStatements()) {
+                visit(statement);
+            }
         }
-        finally{
-            scope = originalScope;
-        }
+
+        this.scope = originalScope;
+
         return null;
     }
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
-        //throw new UnsupportedOperationException();  // TODO
         Scope originalScope = this.scope;
         scope = new Scope(originalScope);
         if (ast.getValue().isPresent()) {
@@ -255,7 +268,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
-        // TODO done
         try{
             visit(ast.getCondition());
             if (ast.getCondition().getType() != Environment.Type.BOOLEAN) {
@@ -272,21 +284,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     @Override
-    public Void visit(Ast.Statement.Return ast) { // TODO done
+    public Void visit(Ast.Statement.Return ast) {
         try{
             visit(ast.getValue());
             Environment.Variable returnType = scope.lookupVariable("returnType");
             requireAssignable(returnType.getType(), ast.getValue().getType());
         }
         catch (RuntimeException e) {
-            throw new RuntimeException( e);
+            throw new RuntimeException(e);
         }
         return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
-        //throw new UnsupportedOperationException();  // TODO
         //exception: integer and decimal
         try {
             if (ast.getLiteral() == Environment.NIL) {
@@ -324,7 +335,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        // TODO done
         try {
             if (ast.getExpression() instanceof Ast.Expression.Binary) {
                 visit(ast.getExpression());
@@ -455,7 +465,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {
-        //throw new UnsupportedOperationException();  // TODO
         try {
             if (!type.equals(target) && !target.equals(Environment.Type.ANY) && !(target.equals(Environment.Type.COMPARABLE) && (type.equals(Environment.Type.INTEGER) || type.equals(Environment.Type.DECIMAL) || type.equals(Environment.Type.CHARACTER) || type.equals(Environment.Type.STRING)))) {
                 throw new RuntimeException("Type " + type + " is not assignable to " + target);
