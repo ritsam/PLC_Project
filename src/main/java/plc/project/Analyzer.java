@@ -451,7 +451,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Expression.PlcList ast) { /// IN PROGRESS
         if (ast.getValues().isEmpty()) {
-            return null;
+            throw new RuntimeException("Empty list is not supported.");
         }
 
         visit(ast.getValues().get(0));
@@ -466,7 +466,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
                 throw new RuntimeException("All elements in the list must have the same type. Expected " + expectedType + ", found " + valueType + ".");
             }
         }
-
+        ast.setType(expectedType);
         return null;
     }
 
