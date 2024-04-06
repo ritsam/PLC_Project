@@ -345,9 +345,8 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        if (ast.getExpression() instanceof Ast.Expression.Binary) {
-            visit(ast.getExpression());
-            ast.setType(ast.getExpression().getType());
+        if (!(ast.getExpression() instanceof Ast.Expression.Binary)) {
+            throw new RuntimeException("Grouped expression must be a binary expression.");
         }
         visit(ast.getExpression());
         ast.setType(ast.getExpression().getType());
