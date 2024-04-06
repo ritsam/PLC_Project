@@ -270,18 +270,24 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
-        try{
-            visit(ast.getCondition());
-            if (ast.getCondition().getType() != Environment.Type.BOOLEAN) {
-                scope = new Scope(scope);
-                for (Ast.Statement st : ast.getStatements()) {
-                    visit(st);
-                }
+        visit(ast.getCondition());
+
+        if (ast.getCondition().getType() != Environment.Type.BOOLEAN) {
+            throw new RuntimeException("Condition of while statement must be of type Boolean.");
+        }
+
+        Scope originalScope = scope;
+        scope = new Scope(originalScope);
+
+        try {
+            for (Ast.Statement statement : ast.getStatements()) {
+                visit(statement);
             }
         }
-        catch (RuntimeException r) {
-            throw new RuntimeException(r);
+        finally {
+            scope = originalScope;
         }
+
         return null;
     }
 
