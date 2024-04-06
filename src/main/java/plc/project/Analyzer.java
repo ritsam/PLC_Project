@@ -10,11 +10,12 @@ import java.util.stream.Collectors;
  * See the specification for information about what the different visit
  * methods should do.
  */
+
 public final class Analyzer implements Ast.Visitor<Void> {
 
     public Scope scope;
     private Ast.Function function;
-
+    private Environment.Type currentFunctionReturnType = null; //for the statement.return function
     public Analyzer(Scope parent) {
         scope = new Scope(parent);
         scope.defineFunction("print", "System.out.println", Arrays.asList(Environment.Type.ANY), Environment.Type.NIL, args -> Environment.NIL);
@@ -82,9 +83,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Function ast) {
         List<Environment.Type> paramTypes = ast.getParameterTypeNames().stream().map(Environment::getType).collect(Collectors.toList());
-        Environment.Type returnType = ast.getReturnTypeName().map(Environment::getType).orElse(Environment.Type.NIL);
+        //for the statement.return function
+        currentFunctionReturnType = Environment.getType(ast.getReturnTypeName().orElse("Nil"));
 
-        Environment.Function envFunction = scope.defineFunction(ast.getName(), ast.getName(), paramTypes, returnType, args -> Environment.NIL);
+        Environment.Function envFunction = scope.defineFunction(ast.getName(), ast.getName(), paramTypes, currentFunctionReturnType, args -> Environment.NIL);
         ast.setFunction(envFunction);
 
         //new scope for functions body with defined parameters
@@ -117,7 +119,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
         }
 //restore scope
         this.scope = originalScope;
-
+        currentFunctionReturnType = null; //reset at end of visit (for statement.return function)
         return null;
     }
 
@@ -285,10 +287,12 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Return ast) {
+        if (currentFunctionReturnType == null) {
+            throw new IllegalStateException("Return statement not within a function.");
+        }
         try{
             visit(ast.getValue());
-            Environment.Variable returnType = scope.lookupVariable("returnType");
-            requireAssignable(returnType.getType(), ast.getValue().getType());
+            requireAssignable(currentFunctionReturnType, ast.getValue().getType());
         }
         catch (RuntimeException e) {
             throw new RuntimeException(e);
