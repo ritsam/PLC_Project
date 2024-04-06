@@ -345,15 +345,12 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        try {
-            if (ast.getExpression() instanceof Ast.Expression.Binary) {
-                visit(ast.getExpression());
-                ast.setType(ast.getExpression().getType());
-            }
+        if (ast.getExpression() instanceof Ast.Expression.Binary) {
+            visit(ast.getExpression());
+            ast.setType(ast.getExpression().getType());
         }
-        catch (RuntimeException r) {
-            throw new RuntimeException("No Ast.Expression.Binary");
-        }
+        visit(ast.getExpression());
+        ast.setType(ast.getExpression().getType());
         return null;
     }
 
