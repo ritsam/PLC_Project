@@ -1,6 +1,8 @@
 package plc.project;
 
 import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 public final class Generator implements Ast.Visitor<Void> {
 
@@ -49,7 +51,7 @@ public final class Generator implements Ast.Visitor<Void> {
         visit(ast.getExpression());
         print(";");
 
-        return null; //TODO
+        return null;
     }
 
     @Override
@@ -66,7 +68,7 @@ public final class Generator implements Ast.Visitor<Void> {
         print(";");
 
         return null;
-    } //TODO
+    }
 
     @Override
     public Void visit(Ast.Statement.If ast) {
@@ -85,7 +87,21 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
-        throw new UnsupportedOperationException(); //TODO
+        print("while (",ast.getCondition());
+        print(") {");
+        indent++;
+
+        //stmts
+        if(!ast.getStatements().isEmpty()) {
+            for (int i = 0; i < ast.getStatements().size(); i++) {
+                newline(indent);
+                print(ast.getStatements().get(i));
+            }
+        }
+        indent--;
+        newline(indent);
+        print("}");
+        return null;
     }
 
     @Override
@@ -95,12 +111,37 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        if (ast.getType() == Environment.Type.CHARACTER) {
+            print("'",ast.getLiteral(),"'");
+        }
+        else if (ast.getType() == Environment.Type.STRING) {
+            print("\"",ast.getLiteral(),"\"");
+        }
+        else if (ast.getType() == Environment.Type.INTEGER) {
+            BigInteger inte = (BigInteger) ast.getLiteral();
+            print(inte.intValue());
+        }
+        else if (ast.getType() == Environment.Type.DECIMAL) { //precision
+            BigDecimal dec = (BigDecimal) ast.getLiteral();
+            print(dec.toString());
+        }
+        if (ast.getType() == Environment.Type.BOOLEAN) {
+            Boolean bool = (Boolean) ast.getLiteral();
+            print(bool);
+        }
+        else {
+            throw new RuntimeException("Literal Error");
+        }
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        throw new UnsupportedOperationException(); //TODO
+        print("(");
+        visit(ast.getExpression());
+        print(")");
+        return null;
     }
 
     @Override
@@ -110,7 +151,12 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException(); //TODO
+        if (ast.getReceiver().isPresent()) {
+            print(ast.getReceiver().get());
+            print(".");
+        }
+        print(ast.getVariable().getJvmName());
+        return null;
     }
 
     @Override
