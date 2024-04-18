@@ -32,39 +32,18 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
-        print("public class Main {");
-        newline(indent + 1);
 
-        // Generate globals (properties)
-        for (Ast.Global global : ast.getGlobals()) {
-            newline(indent + 1);
-            visit(global);
-        }
-
-        // Generate Java's main method
-        newline(indent + 1);
-        print("public static void main(String[] args) {");
-        newline(indent + 2);
-        print("System.exit(new Main().main());");
-        newline(indent + 1);
-        print("}");
-
-        // Generate functions
-        for (Ast.Function function : ast.getFunctions()) {
-            newline(indent + 1);
-            visit(function);
-        }
-
-        // Generate the closing brace for the class
-        newline(indent);
-        print("}");
-
-        return null;
     }
 
     @Override
     public Void visit(Ast.Global ast) {
-        throw new UnsupportedOperationException(); //TODO
+        if (ast.getMutable()) {
+            print(ast.getTypeName(), " ", ast.getName(), ";");
+        } else {
+            print("final ", ast.getTypeName(), " ", ast.getName(), ";");
+        }
+        newline(indent);
+        return null;
     }
 
     @Override
