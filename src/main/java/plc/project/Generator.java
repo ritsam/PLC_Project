@@ -48,7 +48,13 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Function ast) {
-        throw new UnsupportedOperationException(); //TODO
+//        print(ast.getName(), "(");
+//        for (int i = 0; i < ast.getParameters().size(); i++) {
+//            if (i > 0) print(", ");
+//            visit(ast.getParameters().get(i));
+//        }
+//        print(")");
+        return null;
     }
 
     @Override
@@ -163,7 +169,10 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException(); //TODO
+        visit(ast.getLeft());
+        print(" ", ast.getOperator(), " ");
+        visit(ast.getRight());
+        return null;
     }
 
     @Override
