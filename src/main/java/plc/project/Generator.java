@@ -32,7 +32,34 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
-        throw new UnsupportedOperationException(); //TODO
+        print("public class Main {");
+        newline(indent + 1);
+
+        // Generate globals (properties)
+        for (Ast.Global global : ast.getGlobals()) {
+            newline(indent + 1);
+            visit(global);
+        }
+
+        // Generate Java's main method
+        newline(indent + 1);
+        print("public static void main(String[] args) {");
+        newline(indent + 2);
+        print("System.exit(new Main().main());");
+        newline(indent + 1);
+        print("}");
+
+        // Generate functions
+        for (Ast.Function function : ast.getFunctions()) {
+            newline(indent + 1);
+            visit(function);
+        }
+
+        // Generate the closing brace for the class
+        newline(indent);
+        print("}");
+
+        return null;
     }
 
     @Override
@@ -162,11 +189,14 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        if (ast.getReceiver().isPresent()) {
-            print(ast.getReceiver().get());
-            print(".");
+        if (ast.getOffset().isPresent()) {
+            print(ast.getName());
+            print("[");
+            print(ast.getOffset().get());
+            print("]");
+        } else {
+            print(ast.getName());
         }
-        print(ast.getVariable().getJvmName());
         return null;
     }
 
