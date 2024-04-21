@@ -323,8 +323,18 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.PlcList ast) {
+        print("{");
+        List<Ast.Expression> elements = ast.getValues();
 
-        throw new UnsupportedOperationException(); //TODO
+        for (int i = 0; i < elements.size(); i++) {
+            if (i > 0) {
+                print(", ");
+            }
+            visit(elements.get(i));
+        }
+
+        print("}");
+        return null;
     }
 
 }
