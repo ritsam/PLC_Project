@@ -101,12 +101,28 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Global ast) {
-        if (ast.getMutable()) {
-            print(ast.getTypeName(), " ", ast.getName(), ";");
-        } else {
-            print("final ", ast.getTypeName(), " ", ast.getName(), ";");
+        String type = ast.getTypeName();
+        String javaType = type.equals("Decimal") ? "double[]" : type;
+
+        print(javaType + " " + ast.getName());
+        if (ast.getValue().isPresent()) {
+            print(" = ");
+            Ast.Expression value = ast.getValue().get();
+            if (value instanceof Ast.Expression.PlcList) {
+                print("{");
+                List<Ast.Expression> elements = ((Ast.Expression.PlcList)value).getValues();
+                for (int i = 0; i < elements.size(); i++) {
+                    if (i > 0) {
+                        print(", ");
+                    }
+                    visit(elements.get(i));
+                }
+                print("}");
+            } else {
+                visit(value);
+            }
         }
-        newline(indent);
+        print(";");
         return null;
     }
 
@@ -223,7 +239,7 @@ public final class Generator implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Statement.Switch ast) {
         print("switch (");
-        visit(ast.getCondition());  // Visit and print the condition expression
+        visit(ast.getCondition());
         print(") {");
         newline(indent + 1);
 
@@ -231,9 +247,9 @@ public final class Generator implements Ast.Visitor<Void> {
         for (Ast.Statement.Case caseStmt : ast.getCases()) {
             visit(caseStmt);
         }
-        newline(indent-1);
+
+        indent--;
         print("}");
-        newline(indent);
         return null;
     }
 
@@ -245,10 +261,12 @@ public final class Generator implements Ast.Visitor<Void> {
             print(":");
             newline(indent + 1);
 
+            indent++;
             for (Ast.Statement statement : ast.getStatements()) {
                 visit(statement);
-                newline(indent + 1);
+                newline(indent);
             }
+            indent--;
 
             print("break;");
             newline(indent);
@@ -256,11 +274,14 @@ public final class Generator implements Ast.Visitor<Void> {
             print("default:");
             newline(indent + 1);
 
+            indent++;
             for (Ast.Statement statement : ast.getStatements()) {
                 visit(statement);
-                newline(indent + 1);
+                newline(indent);
             }
+            indent--;
         }
+
         return null;
     }
 
@@ -277,8 +298,9 @@ public final class Generator implements Ast.Visitor<Void> {
                 print(ast.getStatements().get(i));
             }
         }
+        print("hi");
         indent--;
-        newline(indent);
+        //newline(indent);
         print("}");
         return null;
     }
