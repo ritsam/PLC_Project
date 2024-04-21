@@ -182,7 +182,18 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
-        throw new UnsupportedOperationException(); //TODO
+        //throw new UnsupportedOperationException(); //TODO
+        print("case ", ast.getValue(), ":");
+        indent++;
+
+        for (Ast.Statement stmt : ast.getStatements()) {
+            newline(indent);
+            visit(stmt);
+        }
+        indent--;
+        newline(indent);
+        print("break;");
+        return null;
     }
 
     @Override
@@ -272,7 +283,6 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
-        //throw new UnsupportedOperationException(); //TODO
         print(ast.getFunction().getJvmName());
         print("(");
         for (int i = 0; i < ast.getArguments().size(); i++) {
