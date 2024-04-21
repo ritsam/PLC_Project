@@ -53,16 +53,50 @@ public final class Generator implements Ast.Visitor<Void> {
         print("}");
         newline(0);
 
-
         for (Ast.Function function : ast.getFunctions()) {
             newline(indent + 1);
-            visit(function);
+            printFunction(function);
             newline(0);
         }
-//close class
+
         newline(indent);
         print("}");
         return null;
+    }
+
+    private void printFunction(Ast.Function function) {
+        String returnType = "void";
+        if (function.getReturnTypeName().isPresent()) {
+            returnType = function.getReturnTypeName().get().equals("Integer") ? "int" : function.getReturnTypeName().get();
+        }
+        print(returnType, " ", function.getName(), "(");
+
+        List<String> parameters = function.getParameters();
+        List<String> parameterTypeNames = function.getParameterTypeNames();
+        for (int i = 0; i < parameters.size(); i++) {
+            if (i > 0) {
+                print(", ");
+            }
+            String paramType = parameterTypeNames.get(i).equals("Integer") ? "int" : parameterTypeNames.get(i);
+            print(paramType, " ", parameters.get(i));
+        }
+
+        print(") {");
+        newline(indent + 2);
+
+        if (!function.getStatements().isEmpty()) {
+            for (Ast.Statement statement : function.getStatements()) {
+                visit(statement);
+                if (statement != function.getStatements().get(function.getStatements().size() - 1)) {
+                    newline(indent + 2);
+                }
+            }
+        } else {
+            print(" ");
+        }
+
+        newline(indent + 1);
+        print("}");
     }
 
     @Override
@@ -252,28 +286,25 @@ public final class Generator implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Expression.Literal ast) {
         if (ast.getType() == Environment.Type.CHARACTER) {
-            print("'",ast.getLiteral(),"'");
+            print("'", ast.getLiteral(), "'");
         }
         else if (ast.getType() == Environment.Type.STRING) {
-            print("\"",ast.getLiteral(),"\"");
+            print("\"", ast.getLiteral(), "\"");
         }
         else if (ast.getType() == Environment.Type.INTEGER) {
             BigInteger inte = (BigInteger) ast.getLiteral();
-            print(inte.intValue());
-            //print(((BigInteger) ast.getLiteral()).intValue());
+            print(inte.toString());
         }
-        else if (ast.getType() == Environment.Type.DECIMAL) { //precision
+        else if (ast.getType() == Environment.Type.DECIMAL) {
             BigDecimal dec = (BigDecimal) ast.getLiteral();
             print(dec.toString());
-            //print(ast.getLiteral().toString());
         }
-        if (ast.getType() == Environment.Type.BOOLEAN) {
+        else if (ast.getType() == Environment.Type.BOOLEAN) {
             Boolean bool = (Boolean) ast.getLiteral();
-            print(bool);
-            //print(ast.getLiteral());
+            print(bool.toString());
         }
         else {
-            throw new RuntimeException("Literal Error");
+            throw new RuntimeException("Unsupported literal type: " + ast.getType());
         }
         return null;
     }
