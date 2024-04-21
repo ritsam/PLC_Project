@@ -3,6 +3,7 @@ package plc.project;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 
 public final class Generator implements Ast.Visitor<Void> {
 
@@ -77,8 +78,34 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Function ast) {
+        String returnType = ast.getReturnTypeName().orElse("void");
+        print(returnType, " ", ast.getName(), "(");
 
-        throw new UnsupportedOperationException(); //TODO
+        List<String> parameters = ast.getParameters();
+        List<String> parameterTypeNames = ast.getParameterTypeNames();
+        for (int i = 0; i < parameters.size(); i++) {
+            if (i > 0) {
+                print(", ");
+            }
+            print(parameterTypeNames.get(i), " ", parameters.get(i));
+        }
+
+        print(") {");
+        newline(indent + 1);
+
+        if (!ast.getStatements().isEmpty()) {
+            for (Ast.Statement statement : ast.getStatements()) {
+                visit(statement);
+                newline(indent + 1);
+            }
+        } else {
+            print(" ");
+        }
+
+        newline(indent);
+        print("}");
+        newline(indent);
+        return null;
     }
 
     @Override
