@@ -30,15 +30,15 @@ public final class Lexer {
     public List<Token> lex() {
         List<Token> tokens = new ArrayList<Token>();
         while (peek(".")) {
-            if (peek("[ \b\n\r\t]")) {
+            if (peek("\\s")) { // use \\s to handle all whitespace characters
                 chars.advance();
                 chars.skip();
+                continue;
             }
-            else {
-                tokens.add(lexToken());
-            }
+            tokens.add(lexToken());
         }
         return tokens;
+
     }
     /**
      * This method determines the type of the next token, delegating to the
@@ -173,12 +173,17 @@ public final class Lexer {
 
     public void lexEscape() { //done
         // escape ::= '\' [bnrt'"\\]
-        if (peek("\\\\", "[bnrt\'\"\\\\]")) {
-            match("\\\\", "[bnrt\'\"\\\\]");
+        if (peek("\\\\u")) { //unicode escape
+            throw new ParseException("Invalid Unicode Escape", chars.index);
+        } else {//existing seq code before
+            if (peek("\\\\", "[bnrt\'\"\\\\]")) {
+                match("\\\\", "[bnrt\'\"\\\\]");
+            }
+            else{
+                throw new ParseException("Invalid Escape", chars.index);
+            }
         }
-        else{
-            throw new ParseException("Invalid Escape", chars.index);
-        }
+
     }
     public Token lexOperator() {
         // operator ::= [!=] '='? | '&&' | '||' | 'any character'
