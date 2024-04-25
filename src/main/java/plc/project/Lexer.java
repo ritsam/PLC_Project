@@ -120,27 +120,22 @@ public final class Lexer {
 
 
     public Token lexCharacter() { //done
-        // open
-        if (peek("\'")) {
-            match("\'");
+        match("\'");
+
+        if (!peek("\'")) {
+            if (peek("\\\\")) {
+                lexEscape();
+            } else {
+                match("[^'\n\r]");
+            }
         } else {
-            throw new ParseException("Invalid character", chars.index);
+            throw new ParseException("Empty character literal", chars.index);
         }
 
-        if (peek("^'\\n\\r\\\\") || peek("\\\\")) {
-            lexEscape();
-        } else if (peek("[^'\n\r\\\\ ]")) {
-            match("[^'\n\r\\\\ ]");
-        } else {
-            throw new ParseException("Invalid character", chars.index);
-        }
-
-        // close
-        if (peek("\'")) {
-            match("\'");
+        if (match("\'")) {
             return chars.emit(Token.Type.CHARACTER);
         } else {
-            throw new ParseException("Invalid character", chars.index);
+            throw new ParseException("Unterminated character literal", chars.index);
         }
     }
 
