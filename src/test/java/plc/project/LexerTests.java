@@ -144,7 +144,7 @@ public class LexerTests {
                 Arguments.of("Multiple", "\'", false),
                 Arguments.of("unterminated", "\'", false),
                 Arguments.of("Num", "\'7\'", true),
-                Arguments.of("Space", "\' \'", false),
+                Arguments.of("Space", "\' \'", true), //changed test case to allow space as a char cause of P1 feedback
                 Arguments.of("Slash", "\'\\\'", false),
                 Arguments.of("Tab", "\'\\t\'", true),
                 Arguments.of("Missing front", "a\'", false),
