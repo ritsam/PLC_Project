@@ -368,6 +368,14 @@ final class InterpreterTests {
                                 new Ast.Expression.Literal(new BigDecimal("3.4"))
                         ),
                         new BigDecimal("0.4")
+                ),
+                // 1.2 * 3.4
+                Arguments.of("Multiplication",
+                        new Ast.Expression.Binary("*",
+                                new Ast.Expression.Literal(new BigDecimal("1.2")),
+                                new Ast.Expression.Literal(new BigDecimal("3.4"))
+                        ),
+                        new BigInteger("4")
                 )
         );
     }
