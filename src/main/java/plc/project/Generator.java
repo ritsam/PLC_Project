@@ -255,7 +255,7 @@ public final class Generator implements Ast.Visitor<Void> {
     }
 
     @Override
-    public Void visit(Ast.Statement.Case ast) { //TODO
+    public Void visit(Ast.Statement.Case ast) { //TODO //in progress
         if (ast.getValue().isPresent()) {
             print("case ");
             visit(ast.getValue().get());
