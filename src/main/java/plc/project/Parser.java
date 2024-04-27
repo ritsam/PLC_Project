@@ -392,7 +392,7 @@ public final class Parser {
                 match("DO");
             }
             else{
-                throw new ParseException("Expected 'DO'", -1);
+                throw new ParseException("Expected 'DO'", tokens.get(-1).getIndex());
             }
             List<Ast.Statement> statements = new ArrayList<Ast.Statement>();
             while (!peek("END")){
@@ -403,7 +403,7 @@ public final class Parser {
                 return new Ast.Statement.While(condition, statements);
             }
             else {
-                throw new ParseException("Missing 'END'", -1);
+                throw new ParseException("Missing 'END'", tokens.get(-1).getIndex());
             }
         }
         catch (ParseException e) {
