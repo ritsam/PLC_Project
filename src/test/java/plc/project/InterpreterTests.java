@@ -370,13 +370,21 @@ final class InterpreterTests {
                         new BigDecimal("0.4")
                 ),
                 // 1.2 * 3.4
-                Arguments.of("Multiplication",
+                Arguments.of("Multiplication", //fix to pass this test P3
                         new Ast.Expression.Binary("*",
                                 new Ast.Expression.Literal(new BigDecimal("1.2")),
                                 new Ast.Expression.Literal(new BigDecimal("3.4"))
                         ),
-                        new BigInteger("4")
+                        BigInteger.valueOf(4)
                 )
+                // 1 + 10
+//                Arguments.of("Addition where result is decimal",
+//                        new Ast.Expression.Binary("+",
+//                                new Ast.Expression.Literal(new BigDecimal("1.2")),
+//                                new Ast.Expression.Literal(BigInteger.TEN)
+//                        ),
+//                        new BigDecimal("11.2")
+//                )
         );
     }
 
