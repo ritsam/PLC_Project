@@ -304,9 +304,27 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             case "*":
                 return Environment.create(requireType(BigInteger.class, visit(ast.getLeft())).multiply(requireType(BigInteger.class, visit(ast.getRight()))));
             case "/":
-                BigInteger rightDiv = requireType(BigInteger.class, visit(ast.getRight()));
-                if (rightDiv.equals(BigInteger.ZERO)) throw new RuntimeException("Division by zero.");
-                return Environment.create(requireType(BigInteger.class, visit(ast.getLeft())).divide(rightDiv));
+                Environment.PlcObject leftDiv = visit(ast.getLeft());
+                Environment.PlcObject rightDiv = visit(ast.getRight());
+
+                //handle BigInteger division
+                if (leftDiv.getValue() instanceof BigInteger && rightDiv.getValue() instanceof BigInteger) {
+                    BigInteger rightInt = (BigInteger) rightDiv.getValue();
+                    if (rightInt.equals(BigInteger.ZERO)) {
+                        throw new RuntimeException("Division by zero.");
+                    }
+                    return Environment.create(((BigInteger) leftDiv.getValue()).divide(rightInt));
+                }
+                //handle BigDecimal division
+                else if (leftDiv.getValue() instanceof BigDecimal && rightDiv.getValue() instanceof BigDecimal) {
+                    BigDecimal rightDec = (BigDecimal) rightDiv.getValue();
+                    if (rightDec.compareTo(BigDecimal.ZERO) == 0) {
+                        throw new RuntimeException("Division by zero.");
+                    }
+                    //rounding
+                    BigDecimal result = ((BigDecimal) leftDiv.getValue()).divide(rightDec, 1, RoundingMode.HALF_EVEN);
+                    return Environment.create(result);
+                }
             case "^":
                 return Environment.create(requireType(BigInteger.class, visit(ast.getLeft())).pow(requireType(BigInteger.class, visit(ast.getRight())).intValueExact()));
             default:
