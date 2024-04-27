@@ -30,7 +30,7 @@ public final class Lexer {
     public List<Token> lex() {
         List<Token> tokens = new ArrayList<Token>();
         while (peek(".")) {
-            if (peek("\\s")) { // use \\s to handle all whitespace characters
+            if (peek("[ \t\n\f\r\u000B\u000C]")) { // changed to detect Not Whitespace LexerTests
                 chars.advance();
                 chars.skip();
                 continue;
