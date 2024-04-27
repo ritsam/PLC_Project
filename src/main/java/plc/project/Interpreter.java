@@ -337,15 +337,23 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
         Environment.Variable variable = scope.lookupVariable(ast.getName());
         if (ast.getOffset().isPresent()) {
-            if (!(variable.getValue().getValue() instanceof List)) {
+            Object value = variable.getValue().getValue();  //get raw value from the variable
+            if (!(value instanceof List)) {
                 throw new RuntimeException("Variable '" + ast.getName() + "' is not a list.");
             }
-            List<Environment.PlcObject> list = (List<Environment.PlcObject>) variable.getValue().getValue();
+
+            List<?> list = (List<?>) value;  //raw type list to handle any object type!!!!
             int index = requireType(BigInteger.class, visit(ast.getOffset().get())).intValue();
             if (index < 0 || index >= list.size()) {
                 throw new RuntimeException("List index out of bounds.");
             }
-            return list.get(index);
+
+            Object item = list.get(index);  //get item as an obj
+            if (item instanceof Environment.PlcObject) {
+                return (Environment.PlcObject) item;  //return if already a plcobject
+            } else {
+                return Environment.create(item);  //wrap the item in a plcobject if it hasnt been alr
+            }
         } else {
             return variable.getValue();
         }
