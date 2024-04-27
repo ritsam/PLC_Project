@@ -435,6 +435,7 @@ public final class Parser {
      */
     public Ast.Expression parseLogicalExpression() throws ParseException {
         //TODO 2a
+        try {
         Ast.Expression currentExpression = parseComparisonExpression();
         while (match("&&") || match("||")) {
             String operation = tokens.get(-1).getLiteral();
@@ -442,6 +443,9 @@ public final class Parser {
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpression);
         }
         return currentExpression;
+        } catch(ParseException p) {
+            throw new ParseException(p.getMessage(), p.getIndex());
+        }
     }
 
     /**
@@ -449,6 +453,7 @@ public final class Parser {
      */
     public Ast.Expression parseComparisonExpression() throws ParseException {
         //TODO 2a
+        try {
         Ast.Expression currentExpression = parseAdditiveExpression();
         while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
             String operation = tokens.get(-1).getLiteral();
@@ -456,12 +461,16 @@ public final class Parser {
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpr);
         }
         return currentExpression;
+        } catch(ParseException p) {
+            throw new ParseException(p.getMessage(), p.getIndex());
+        }
     }
 
     /**
      * Parses the {@code additive-expression} rule.
      */
     public Ast.Expression parseAdditiveExpression() throws ParseException {
+        try {
         Ast.Expression expression=parseMultiplicativeExpression(); //TODO 2a
         while(match("+")||match("-")){
             String add= tokens.get(-1).getLiteral(); //store operator
@@ -469,12 +478,16 @@ public final class Parser {
             expression=new Ast.Expression.Binary(add,expression,right);
         }
         return expression;
+    } catch(ParseException p) {
+        throw new ParseException(p.getMessage(), p.getIndex());
+    }
     }
 
     /**
      * Parses the {@code multiplicative-expression} rule.
      */
     public Ast.Expression parseMultiplicativeExpression() throws ParseException {
+        try {
         Ast.Expression expression=parsePrimaryExpression(); //TODO 2a
         while(match("/")||match("*")){
             String multi= tokens.get(-1).getLiteral();
@@ -482,6 +495,9 @@ public final class Parser {
             expression=new Ast.Expression.Binary(multi,expression,right);
         }
         return expression;
+    } catch(ParseException p) {
+        throw new ParseException(p.getMessage(), p.getIndex());
+    }
     }
 
     /**
