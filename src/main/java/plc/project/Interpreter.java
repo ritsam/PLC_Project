@@ -156,59 +156,30 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Statement.Switch ast) {
         Environment.PlcObject conditionValue = visit(ast.getCondition());
-        Scope originalScope = scope;
-        scope = new Scope(originalScope);
-        try {
-            boolean matchFound = false;
-
-            for (Ast.Statement.Case caseStmt : ast.getCases()) {
-                if (matchFound || !caseStmt.getValue().isPresent()) {
+        boolean matchFound = false;
+        for (Ast.Statement.Case caseStmt : ast.getCases()) {
+            if (caseStmt.getValue().isPresent()) {
+                Environment.PlcObject caseValue = visit(caseStmt.getValue().get());
+                if (conditionValue.getValue().equals(caseValue.getValue())) {
+                    matchFound = true;
                     for (Ast.Statement statement : caseStmt.getStatements()) {
                         visit(statement);
                     }
-                    if (!matchFound) break;
-                } else {
-                    Environment.PlcObject caseValue = visit(caseStmt.getValue().get());
-                    if (conditionValue.equals(caseValue)) {
-                        matchFound = true;
-                        for (Ast.Statement statement : caseStmt.getStatements()) {
-                            visit(statement);
-                        }
-                        break;
-                    }
+                    break;///matched a case
                 }
             }
-        } finally {
-            scope = originalScope;
+        }
+        if (!matchFound) {
+            for (Ast.Statement.Case caseStmt : ast.getCases()) {
+                if (!caseStmt.getValue().isPresent()) {  //default case handling
+                    for (Ast.Statement statement : caseStmt.getStatements()) {
+                        visit(statement);
+                    }
+                    break;
+                }
+            }
         }
         return Environment.NIL;
-//        Environment.PlcObject conditionValue = visit(ast.getCondition());
-//        Scope originalScope = scope;
-//        scope = new Scope(originalScope);
-//        try {
-//            boolean matchFound = false;
-//
-//            for (Ast.Statement.Case caseStmt : ast.getCases()) {
-//                if (matchFound || !caseStmt.getValue().isPresent()) {
-//                    for (Ast.Statement statement : caseStmt.getStatements()) {
-//                        visit(statement);
-//                    }
-//                    break;
-//                } else {
-//                    Environment.PlcObject caseValue = visit(caseStmt.getValue().get());
-//                    if (conditionValue.equals(caseValue)) {
-//                        matchFound = true;
-//                        for (Ast.Statement statement : caseStmt.getStatements()) {
-//                            visit(statement);
-//                        }
-//                        break;
-//                    }
-//                }
-//            }
-//        } finally {
-//            scope = originalScope;
-//        }
-//        return Environment.NIL;
     }
 
     @Override
