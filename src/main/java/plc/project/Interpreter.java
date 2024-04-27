@@ -166,7 +166,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
                     for (Ast.Statement statement : caseStmt.getStatements()) {
                         visit(statement);
                     }
-                    break;
+                    if (!matchFound) break;
                 } else {
                     Environment.PlcObject caseValue = visit(caseStmt.getValue().get());
                     if (conditionValue.equals(caseValue)) {
@@ -182,6 +182,33 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             scope = originalScope;
         }
         return Environment.NIL;
+//        Environment.PlcObject conditionValue = visit(ast.getCondition());
+//        Scope originalScope = scope;
+//        scope = new Scope(originalScope);
+//        try {
+//            boolean matchFound = false;
+//
+//            for (Ast.Statement.Case caseStmt : ast.getCases()) {
+//                if (matchFound || !caseStmt.getValue().isPresent()) {
+//                    for (Ast.Statement statement : caseStmt.getStatements()) {
+//                        visit(statement);
+//                    }
+//                    break;
+//                } else {
+//                    Environment.PlcObject caseValue = visit(caseStmt.getValue().get());
+//                    if (conditionValue.equals(caseValue)) {
+//                        matchFound = true;
+//                        for (Ast.Statement statement : caseStmt.getStatements()) {
+//                            visit(statement);
+//                        }
+//                        break;
+//                    }
+//                }
+//            }
+//        } finally {
+//            scope = originalScope;
+//        }
+//        return Environment.NIL;
     }
 
     @Override
@@ -237,21 +264,21 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
                 return Environment.create(requireType(Boolean.class, visit(ast.getLeft())) && requireType(Boolean.class, visit(ast.getRight())));
             case "||":
                 return Environment.create(requireType(Boolean.class, visit(ast.getLeft())) || requireType(Boolean.class, visit(ast.getRight())));
-            case "<":
-                /*if(visit(ast.getLeft()).getValue() instanceof Comparable) {
+            case "<": ////
+                if(visit(ast.getLeft()).getValue() instanceof Comparable) {
                     Environment.PlcObject right = visit(ast.getRight());
                     if(requireType(visit(ast.getLeft()).getValue().getClass(), right) != null) {
                         return Environment.create(((Comparable) visit(ast.getLeft()).getValue()).compareTo(right.getValue()) < 0);
                     }
-                }*/
+                }
                 break;
-            case ">":
-                /*if(visit(ast.getLeft()).getValue() instanceof Comparable) {
+            case ">": ///
+                if(visit(ast.getLeft()).getValue() instanceof Comparable) {
                     Environment.PlcObject right = visit(ast.getRight());
                     if(requireType(visit(ast.getLeft()).getValue().getClass(), right) != null) {
                         return Environment.create(((Comparable) visit(ast.getLeft()).getValue()).compareTo(right.getValue()) > 0);
                     }
-                }*/
+                }
                 break;
             case "==":
                 return Environment.create(Objects.equals(visit(ast.getLeft()), visit(ast.getRight())));
