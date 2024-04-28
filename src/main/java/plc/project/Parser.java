@@ -550,7 +550,7 @@ public final class Parser {
                         arguments.add(parseExpression());
                     } while (match(","));
                     if (!match(")")) {
-                        throw new ParseException("Missing closing parenthesis", tokens.get(-1).getIndex());
+                        throw new ParseException("Missing closing parenthesis", tokens.get(0).getIndex());
                     }
                 }
                 return new Ast.Expression.Function(id, arguments);
@@ -559,7 +559,7 @@ public final class Parser {
             if (match("[")) {
                 Ast.Expression index = parseExpression();
                 if (!match("]")) {
-                    throw new ParseException("Missing closing bracket", tokens.get(-1).getIndex());
+                    throw new ParseException("Missing closing bracket", tokens.get(0).getIndex());
                 }
                 return new Ast.Expression.Access(Optional.of(index), id);
             }
