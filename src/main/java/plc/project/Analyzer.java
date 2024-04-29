@@ -54,26 +54,34 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Global ast) { //in prog
         Environment.Type variableType = Environment.getType(ast.getTypeName());
 
-        //global var declaration has an initial value, visit + process
         if (ast.getValue().isPresent()) {
             Ast.Expression valueExpression = ast.getValue().get();
-            if (valueExpression instanceof Ast.Expression.Literal) {
-                visit((Ast.Expression.Literal) valueExpression);
-            }
-            else if (valueExpression instanceof Ast.Expression.Binary) {
-                visit((Ast.Expression.Binary) valueExpression);
-            }
-            Environment.Type valueType = valueExpression.getType();
 
-            requireAssignable(variableType, valueType);
+            if (valueExpression instanceof Ast.Expression.PlcList) {
+                List<Ast.Expression> elements = ((Ast.Expression.PlcList) valueExpression).getValues();
+                if (elements.isEmpty()) {
+                    throw new RuntimeException("List cannot be empty.");
+                }
+                //check all elements in the list
+                for (Ast.Expression element : elements) {
+                    visit(element);
+                    Environment.Type elementType = element.getType();
+                    if (!elementType.equals(variableType)) {
+                        throw new RuntimeException("List element types do not match the declared type: expected " + variableType + ", found " + elementType);
+                    }
+                }
+            } else {
+                //non-list expressions
+                visit(valueExpression);
+                Environment.Type valueType = valueExpression.getType();
+                requireAssignable(variableType, valueType);
+            }
         }
 
-        //define var in its scope
         try {
             Environment.Variable definedVariable = scope.defineVariable(ast.getName(), ast.getName(), variableType, ast.getMutable(), Environment.NIL);
             ast.setVariable(definedVariable);
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new RuntimeException("Error defining global variable: " + ast.getName(), e);
         }
 
