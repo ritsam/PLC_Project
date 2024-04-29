@@ -244,12 +244,17 @@ public final class Generator implements Ast.Visitor<Void> {
         newline(indent + 1);
 
         indent++;
+        boolean firstCase = true;
         for (Ast.Statement.Case caseStmt : ast.getCases()) {
+            if (!firstCase) {
+                newline(indent);
+            }
             visit(caseStmt);
+            firstCase = false;
         }
 
         indent--;
-        newline(indent);
+        newline(--indent);
         print("}");
         return null;
     }
@@ -259,26 +264,27 @@ public final class Generator implements Ast.Visitor<Void> {
         if (ast.getValue().isPresent()) {
             print("case ");
             visit(ast.getValue().get());
-            print(":");
-            newline(indent + 1);  // Ensure newline and indentation for the content of the case
         } else {
-            // Adjusted the printing of "default:" to ensure it matches the indentation of "case"
-            newline(indent);
-            print("default:");
-            newline(indent + 1);
+            print("default");
         }
+        print(":");
+        newline(indent + 1);
 
         indent++;
-        boolean hasStatements = false;
+        boolean firstStatement = true;
         for (Ast.Statement statement : ast.getStatements()) {
+            if (!firstStatement) {
+                newline(indent);
+            }
             visit(statement);
-            newline(indent);
-            hasStatements = true;
+            firstStatement = false;
         }
-        if (hasStatements && ast.getValue().isPresent()) {
+
+        if (ast.getValue().isPresent()) {
+            newline(indent);
             print("break;");
-            newline(indent);
         }
+
         indent--;
         return null;
     }
