@@ -467,6 +467,14 @@ public final class AnalyzerTests {
                                 new Ast.Expression.Literal(BigDecimal.ONE)
                         ),
                         null
+                ),
+                Arguments.of("Mixed Division Types",
+                        // 1.0 + 1
+                        new Ast.Expression.Binary("/",
+                                new Ast.Expression.Literal(BigDecimal.ONE),
+                                new Ast.Expression.Literal(BigInteger.ONE)
+                        ),
+                        null
                 )
         );
     }
