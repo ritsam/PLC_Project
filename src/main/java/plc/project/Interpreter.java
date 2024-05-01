@@ -56,10 +56,29 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Function ast) {
+//        scope.defineFunction(ast.getName(), ast.getParameters().size(), args -> {
+//            Scope currentScope = scope;
+//            //new child scope
+//            scope = new Scope(currentScope);
+//            try {
+//                for (int i = 0; i < ast.getParameters().size(); i++) {
+//                    scope.defineVariable(ast.getParameters().get(i), true, args.get(i));
+//                }
+//                for (Ast.Statement statement : ast.getStatements()) {
+//                    visit(statement);
+//                }
+//            } catch (Return returnValue) {
+//                return returnValue.value;
+//            } finally {
+//                scope = currentScope;
+//            }
+//            return Environment.NIL;
+//        });
+//        return Environment.NIL;
         scope.defineFunction(ast.getName(), ast.getParameters().size(), args -> {
-            Scope currentScope = scope;
-            //new child scope
-            scope = new Scope(currentScope);
+            Scope functionScope = new Scope(scope);
+            Scope originalScope = scope;
+            scope = functionScope;
             try {
                 for (int i = 0; i < ast.getParameters().size(); i++) {
                     scope.defineVariable(ast.getParameters().get(i), true, args.get(i));
@@ -70,7 +89,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             } catch (Return returnValue) {
                 return returnValue.value;
             } finally {
-                scope = currentScope;
+                scope = originalScope;
             }
             return Environment.NIL;
         });
