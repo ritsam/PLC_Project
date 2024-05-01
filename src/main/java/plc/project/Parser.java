@@ -41,7 +41,7 @@ public final class Parser {
                     f.add(parseFunction());
                 }
             }
-            return new Ast.Source(g,f);
+            return new Ast.Source(g, f);
         } catch (ParseException pe) {
             throw new ParseException(pe.getMessage(), pe.getIndex());
         }
@@ -99,7 +99,7 @@ public final class Parser {
      * next token declares a mutable global variable, aka {@code VAR}.
      */
     public Ast.Global parseMutable() throws ParseException {
- //TODO
+        //TODO
         match("VAR");
         if (!match(Token.Type.IDENTIFIER)) {
             throw new ParseException("Expected identifier after VAR", tokens.get(-1).getIndex());
@@ -203,7 +203,7 @@ public final class Parser {
         // parse body of function
         List<Ast.Statement> statements = parseBlock();
         match("END");
-        return new Ast.Function(functionName, parameters, parameterTypeNames,  Optional.of(returnTypeName), statements);
+        return new Ast.Function(functionName, parameters, parameterTypeNames, Optional.of(returnTypeName), statements);
     }
 
     /**
@@ -231,31 +231,38 @@ public final class Parser {
      */
     public Ast.Statement parseStatement() throws ParseException {
         //TODO  2b
-        try {
-            if (peek("LET")) {
-                return parseDeclarationStatement();
-            } else if (peek("SWITCH")) {
-                return parseSwitchStatement();
-            } else if (peek("IF")) {
-                return parseIfStatement();
-            } else if (peek("WHILE")) {
-                return parseWhileStatement();
-            } else if (peek("RETURN")) {
-                return parseReturnStatement();
-            } else {
-                Ast.Expression expression = parseExpression();
-                if (match("=")) {
-                    Ast.Expression right = parseExpression();
-                    match(";"); //both = and ;
+        if (peek("LET")) {
+            return parseDeclarationStatement();
+        } else if (peek("SWITCH")) {
+            return parseSwitchStatement();
+        } else if (peek("IF")) {
+            return parseIfStatement();
+        } else if (peek("WHILE")) {
+            return parseWhileStatement();
+        } else if (peek("RETURN")) {
+            return parseReturnStatement();
+        } else {
+            Ast.Expression expression = parseExpression();
+            if (match("=")) {
+                Ast.Expression right = parseExpression();
+                if (match(";")) { //both = and ;
                     return new Ast.Statement.Assignment(expression, right);
-                } else if (match(";")) {
-                    return new Ast.Statement.Expression(expression);
                 } else {
-                    throw new ParseException("Expected '=' or ';'", tokens.get(-1).getIndex());
+                    if (tokens.has(0))
+                        throw new ParseException("no ;" + " INDEX:" + tokens.get(0).getIndex(),
+                                tokens.get(0).getIndex());
+                    else
+                        throw new ParseException("no ;", tokens.get(0).getIndex());
                 }
+            } else if (match(";")) {
+                return new Ast.Statement.Expression(expression);
+            } else {
+                if (tokens.has(0))
+                    throw new ParseException("no ;" + " INDEX:" + tokens.get(0).getIndex(),
+                            tokens.get(0).getIndex());
+                else
+                    throw new ParseException("no ;", tokens.get(0).getIndex());
             }
-        } catch (ParseException pe) {
-            throw new ParseException(pe.getMessage(), pe.getIndex());
         }
     }
 
