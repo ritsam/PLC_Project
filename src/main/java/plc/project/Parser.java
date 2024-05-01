@@ -41,7 +41,7 @@ public final class Parser {
                     f.add(parseFunction());
                 }
             }
-            return new Ast.Source(g,f);
+            return new Ast.Source(g, f);
         } catch (ParseException pe) {
             throw new ParseException(pe.getMessage(), pe.getIndex());
         }
@@ -99,7 +99,7 @@ public final class Parser {
      * next token declares a mutable global variable, aka {@code VAR}.
      */
     public Ast.Global parseMutable() throws ParseException {
- //TODO
+        //TODO
         match("VAR");
         if (!match(Token.Type.IDENTIFIER)) {
             throw new ParseException("Expected identifier after VAR", tokens.get(-1).getIndex());
@@ -203,13 +203,18 @@ public final class Parser {
         // parse body of function
         List<Ast.Statement> statements = parseBlock();
         match("END");
-        return new Ast.Function(functionName, parameters, parameterTypeNames,  Optional.of(returnTypeName), statements);
+        return new Ast.Function(functionName, parameters, parameterTypeNames, Optional.of(returnTypeName), statements);
     }
 
     /**
      * Parses the {@code block} rule. This method should only be called if the
      * preceding token indicates the opening a block of statements.
      */
+    private int parseExIndex(boolean has) {
+        if (has)
+            return tokens.get(0).getIndex();
+        return tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length();
+    }
     public List<Ast.Statement> parseBlock() throws ParseException {
         //TODO
         List<Ast.Statement> statements = new ArrayList<>();
@@ -231,31 +236,38 @@ public final class Parser {
      */
     public Ast.Statement parseStatement() throws ParseException {
         //TODO  2b
-        try {
-            if (peek("LET")) {
-                return parseDeclarationStatement();
-            } else if (peek("SWITCH")) {
-                return parseSwitchStatement();
-            } else if (peek("IF")) {
-                return parseIfStatement();
-            } else if (peek("WHILE")) {
-                return parseWhileStatement();
-            } else if (peek("RETURN")) {
-                return parseReturnStatement();
-            } else {
-                Ast.Expression expression = parseExpression();
-                if (match("=")) {
-                    Ast.Expression right = parseExpression();
-                    match(";"); //both = and ;
+        if (peek("LET")) {
+            return parseDeclarationStatement();
+        } else if (peek("SWITCH")) {
+            return parseSwitchStatement();
+        } else if (peek("IF")) {
+            return parseIfStatement();
+        } else if (peek("WHILE")) {
+            return parseWhileStatement();
+        } else if (peek("RETURN")) {
+            return parseReturnStatement();
+        } else {
+            Ast.Expression expression = parseExpression();
+            if (match("=")) {
+                Ast.Expression right = parseExpression();
+                if (match(";")) { //both = and ;
                     return new Ast.Statement.Assignment(expression, right);
-                } else if (match(";")) {
-                    return new Ast.Statement.Expression(expression);
                 } else {
-                    throw new ParseException("Expected '=' or ';'", tokens.get(-1).getIndex());
+                    if (tokens.has(0))
+                        throw new ParseException("no ;" + " INDEX:" + tokens.get(0).getIndex(),
+                                tokens.get(0).getIndex());
+                    else
+                        throw new ParseException("no ;", tokens.get(0).getIndex());
                 }
+            } else if (match(";")) {
+                return new Ast.Statement.Expression(expression);
+            } else {
+                if (tokens.has(0))
+                    throw new ParseException("no ;" + " INDEX:" + tokens.get(0).getIndex(),
+                            tokens.get(0).getIndex());
+                else
+                    throw new ParseException("no ;", tokens.get(0).getIndex());
             }
-        } catch (ParseException pe) {
-            throw new ParseException(pe.getMessage(), pe.getIndex());
         }
     }
 
@@ -385,14 +397,17 @@ public final class Parser {
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
         //TODO  Missing END: Unexpected java.lang.IndexOutOfBoundsException.
-        try {
+
             match("WHILE");
             Ast.Expression condition = parseExpression();
             if(peek("DO")){
                 match("DO");
             }
             else{
-                throw new ParseException("Expected 'DO'", tokens.get(-1).getIndex());
+                if (tokens.has(0))
+                    throw new ParseException("no DO", tokens.get(0).getIndex());
+                else
+                    throw new ParseException("no DO" + " INDEX:" + (parseExIndex(false)), parseExIndex(false));
             }
             List<Ast.Statement> statements = new ArrayList<Ast.Statement>();
             while (!peek("END")){
@@ -401,15 +416,14 @@ public final class Parser {
             if (peek("END")) {
                 match("END");
                 return new Ast.Statement.While(condition, statements);
+            } else {
+                if (tokens.has(0))
+                    throw new ParseException("no END", tokens.get(0).getIndex());
+                else
+                    throw new ParseException("no END" + " INDEX:" + (parseExIndex(false)), parseExIndex(false));
             }
-            else {
-                throw new ParseException("Missing 'END'", tokens.get(-1).getIndex());
-            }
-        }
-        catch (ParseException e) {
-            throw new ParseException("Error in while: " + e.getMessage(), e.getIndex());
-        }
     }
+
 
     /**
      * Parses a return statement from the {@code statement} rule. This method
