@@ -102,9 +102,12 @@ public final class Generator implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Global ast) {
         String type = ast.getTypeName();
-        String javaType = type.equals("Decimal") ? "double[]" : type;
+        String javaType = type.equals("Decimal") ? "double[]" : type.equals("Integer") ? "int" : type;
 
-        print(javaType + " " + ast.getName());
+        //if the variable is immutable
+        String declarationPrefix = ast.getMutable() ? "" : "final ";
+        print(declarationPrefix + javaType + " " + ast.getName());
+
         if (ast.getValue().isPresent()) {
             print(" = ");
             Ast.Expression value = ast.getValue().get();
@@ -115,11 +118,42 @@ public final class Generator implements Ast.Visitor<Void> {
                     if (i > 0) {
                         print(", ");
                     }
-                    visit(elements.get(i));
+                    Ast.Expression element = elements.get(i);
+                    if (element instanceof Ast.Expression.Literal) {
+                        Object literal = ((Ast.Expression.Literal)element).getLiteral();
+                        if (literal instanceof BigDecimal) {
+                            print(((BigDecimal)literal).toPlainString());
+                        } else if (literal instanceof BigInteger) {
+                            print(literal.toString());
+                        } else if (literal instanceof String) {
+                            print('"' + literal.toString() + '"');
+                        } else if (literal instanceof Boolean) {
+                            print(literal.toString());
+                        } else {
+                            throw new RuntimeException("Unsupported literal type: " + literal.getClass().getSimpleName());
+                        }
+                    } else {
+                        throw new RuntimeException("Non-literal expression cannot be used in array initialization.");
+                    }
                 }
                 print("}");
             } else {
-                visit(value);
+                if (value instanceof Ast.Expression.Literal) {
+                    Object literal = ((Ast.Expression.Literal)value).getLiteral();
+                    if (literal instanceof BigDecimal) {
+                        print(((BigDecimal)literal).toPlainString());
+                    } else if (literal instanceof BigInteger) {
+                        print(literal.toString());
+                    } else if (literal instanceof String) {
+                        print('"' + literal.toString() + '"');
+                    } else if (literal instanceof Boolean) {
+                        print(literal.toString());
+                    } else {
+                        throw new RuntimeException("Unsupported literal type.");
+                    }
+                } else {
+                    throw new RuntimeException("Unsupported expression type for global initialization.");
+                }
             }
         }
         print(";");
