@@ -411,13 +411,16 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
+
         print(ast.getFunction().getJvmName());
         print("(");
+        if (!ast.getArguments().isEmpty()) {
         for (int i = 0; i < ast.getArguments().size(); i++) {
             visit(ast.getArguments().get(i));
             if (i != ast.getArguments().size() - 1) {
                 print(", ");
             }
+        }
         }
         print(")");
         return null;
