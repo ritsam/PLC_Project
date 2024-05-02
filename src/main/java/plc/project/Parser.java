@@ -245,14 +245,18 @@ public final class Parser {
             } else {
                 Ast.Expression expression = parseExpression();
                 if (match("=")) {
+                    if (!tokens.has(0)) {
+                        throw new ParseException("Expected expression after '='", tokens.get(-1).getIndex());
+                    }
                     Ast.Expression right = parseExpression();
-                    match(";"); //both = and ;
+                    if (!match(";")) {
+                        throw new ParseException("Expected ';' after expression", tokens.get(-1).getIndex());
+                    }
                     return new Ast.Statement.Assignment(expression, right);
-                } else if (match(";")) {
-                    return new Ast.Statement.Expression(expression);
-                } else {
-                    throw new ParseException("Expected '=' or ';'", tokens.get(-1).getIndex());
+                } else if (!match(";")) {
+                    throw new ParseException("Expected ';' after expression", tokens.get(-1).getIndex());
                 }
+                return new Ast.Statement.Expression(expression);
             }
         } catch (ParseException pe) {
             throw new ParseException(pe.getMessage(), pe.getIndex());
