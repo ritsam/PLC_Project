@@ -325,21 +325,24 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
-        print("while (",ast.getCondition());
+        print("while (");
+        visit(ast.getCondition());
         print(") {");
-        indent++;
 
         //stmts
         if(!ast.getStatements().isEmpty()) {
+            indent++;
             for (int i = 0; i < ast.getStatements().size(); i++) {
-                newline(indent);
+                newline(indent+1);
                 print(ast.getStatements().get(i));
             }
+            indent--;
+            newline(indent);
+            print("}");
         }
-        print("hi");
-        indent--;
-        //newline(indent);
-        print("}");
+        else{
+            print("}");
+        }
         return null;
     }
 
