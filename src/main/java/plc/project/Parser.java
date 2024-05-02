@@ -384,27 +384,25 @@ public final class Parser {
      * {@code WHILE}.
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
-        //TODO  Missing END: Unexpected java.lang.IndexOutOfBoundsException.
+        //TODO
         try {
             match("WHILE");
             Ast.Expression condition = parseExpression();
-            if(peek("DO")){
-                match("DO");
+
+            if (!match("DO")) {
+                throw new ParseException("Expected 'DO' after 'WHILE' condition", tokens.get(-1).getIndex());
             }
-            else{
-                throw new ParseException("Expected 'DO'", -1);
-            }
-            List<Ast.Statement> statements = new ArrayList<Ast.Statement>();
-            while (!peek("END")){
+
+            List<Ast.Statement> statements = new ArrayList<>();
+            while (!peek("END") && tokens.has(0)) {
                 statements.add(parseStatement());
             }
-            if (peek("END")) {
-                match("END");
-                return new Ast.Statement.While(condition, statements);
+
+            if (!match("END")) {
+                throw new ParseException("Missing 'END' after 'WHILE' block", tokens.get(-1).getIndex());
             }
-            else {
-                throw new ParseException("Missing 'END'", -1);
-            }
+
+            return new Ast.Statement.While(condition, statements);
         }
         catch (ParseException e) {
             throw new ParseException("Error in while: " + e.getMessage(), e.getIndex());
@@ -438,6 +436,9 @@ public final class Parser {
         Ast.Expression currentExpression = parseComparisonExpression();
         while (match("&&") || match("||")) {
             String operation = tokens.get(-1).getLiteral();
+            if (!tokens.has(0)) {
+                throw new ParseException("Expected an expression after operator '" + operation + "'", tokens.index);
+            }
             Ast.Expression rightExpression = parseComparisonExpression();
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpression);
         }
@@ -452,6 +453,9 @@ public final class Parser {
         Ast.Expression currentExpression = parseAdditiveExpression();
         while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
             String operation = tokens.get(-1).getLiteral();
+            if (!tokens.has(0)) {
+                throw new ParseException("Expected an expression after operator '" + operation + "'", tokens.index);
+            }
             Ast.Expression rightExpr = parseAdditiveExpression();
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpr);
         }
@@ -465,6 +469,9 @@ public final class Parser {
         Ast.Expression expression=parseMultiplicativeExpression(); //TODO 2a
         while(match("+")||match("-")){
             String add= tokens.get(-1).getLiteral(); //store operator
+            if (!tokens.has(0)) {
+                throw new ParseException("Expected an expression after operator '" + add + "'", tokens.index);
+            }
             Ast.Expression right=parseMultiplicativeExpression();
             expression=new Ast.Expression.Binary(add,expression,right);
         }
@@ -478,6 +485,9 @@ public final class Parser {
         Ast.Expression expression=parsePrimaryExpression(); //TODO 2a
         while(match("/")||match("*")){
             String multi= tokens.get(-1).getLiteral();
+            if (!tokens.has(0)) {
+                throw new ParseException("Expected an expression after operator '" + multi + "'", tokens.index);
+            }
             Ast.Expression right=parsePrimaryExpression();
             expression=new Ast.Expression.Binary(multi,expression,right);
         }
