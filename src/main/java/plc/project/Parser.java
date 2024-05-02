@@ -438,8 +438,8 @@ public final class Parser {
         Ast.Expression currentExpression = parseComparisonExpression();
         while (match("&&") || match("||")) {
             String operation = tokens.get(-1).getLiteral();
-            if (!tokens.has(0) || !peek(Token.Type.IDENTIFIER, Token.Type.INTEGER, Token.Type.DECIMAL, Token.Type.CHARACTER, Token.Type.STRING, "(")) {
-                throw new ParseException("Expected an expression after operator '" + operation + "'", tokens.get(-1).getIndex() + 1);
+            if (!tokens.has(0)) {
+                throw new ParseException("Expected an expression after operator '" + operation + "'", tokens.index);
             }
             Ast.Expression rightExpression = parseComparisonExpression();
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpression);
@@ -455,8 +455,8 @@ public final class Parser {
         Ast.Expression currentExpression = parseAdditiveExpression();
         while (match("!=") || match("==") || match(">=") || match(">") || match("<=") || match("<")) {
             String operation = tokens.get(-1).getLiteral();
-            if (!tokens.has(0) || !peek(Token.Type.IDENTIFIER, Token.Type.INTEGER, Token.Type.DECIMAL, Token.Type.CHARACTER, Token.Type.STRING, "(")) {
-                throw new ParseException("Expected an expression after operator '" + operation + "'", tokens.get(-1).getIndex() + 1);
+            if (!tokens.has(0)) {
+                throw new ParseException("Expected an expression after operator '" + operation + "'", tokens.index);
             }
             Ast.Expression rightExpr = parseAdditiveExpression();
             currentExpression = new Ast.Expression.Binary(operation, currentExpression, rightExpr);
@@ -471,8 +471,8 @@ public final class Parser {
         Ast.Expression expression=parseMultiplicativeExpression(); //TODO 2a
         while(match("+")||match("-")){
             String add= tokens.get(-1).getLiteral(); //store operator
-            if (!tokens.has(0) || !peek(Token.Type.IDENTIFIER, Token.Type.INTEGER, Token.Type.DECIMAL, Token.Type.CHARACTER, Token.Type.STRING, "(")) {
-                throw new ParseException("Expected an expression after operator '" + add + "'", tokens.get(-1).getIndex() + 1);
+            if (!tokens.has(0)) {
+                throw new ParseException("Expected an expression after operator '" + add + "'", tokens.index);
             }
             Ast.Expression right=parseMultiplicativeExpression();
             expression=new Ast.Expression.Binary(add,expression,right);
@@ -487,8 +487,8 @@ public final class Parser {
         Ast.Expression expression=parsePrimaryExpression(); //TODO 2a
         while(match("/")||match("*")){
             String multi= tokens.get(-1).getLiteral();
-            if (!tokens.has(0) || !peek(Token.Type.IDENTIFIER, Token.Type.INTEGER, Token.Type.DECIMAL, Token.Type.CHARACTER, Token.Type.STRING, "(")) {
-                throw new ParseException("Expected an expression after operator '" + multi + "'", tokens.get(-1).getIndex() + 1);
+            if (!tokens.has(0)) {
+                throw new ParseException("Expected an expression after operator '" + multi + "'", tokens.index);
             }
             Ast.Expression right=parsePrimaryExpression();
             expression=new Ast.Expression.Binary(multi,expression,right);
