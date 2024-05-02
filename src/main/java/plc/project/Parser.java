@@ -384,27 +384,25 @@ public final class Parser {
      * {@code WHILE}.
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
-        //TODO  Missing END: Unexpected java.lang.IndexOutOfBoundsException.
+        //TODO
         try {
             match("WHILE");
             Ast.Expression condition = parseExpression();
-            if(peek("DO")){
-                match("DO");
+
+            if (!match("DO")) {
+                throw new ParseException("Expected 'DO' after 'WHILE' condition", tokens.get(-1).getIndex());
             }
-            else{
-                throw new ParseException("Expected 'DO'", -1);
-            }
-            List<Ast.Statement> statements = new ArrayList<Ast.Statement>();
-            while (!peek("END")){
+
+            List<Ast.Statement> statements = new ArrayList<>();
+            while (!peek("END") && tokens.has(0)) {
                 statements.add(parseStatement());
             }
-            if (peek("END")) {
-                match("END");
-                return new Ast.Statement.While(condition, statements);
+
+            if (!match("END")) {
+                throw new ParseException("Missing 'END' after 'WHILE' block", tokens.get(-1).getIndex());
             }
-            else {
-                throw new ParseException("Missing 'END'", -1);
-            }
+
+            return new Ast.Statement.While(condition, statements);
         }
         catch (ParseException e) {
             throw new ParseException("Error in while: " + e.getMessage(), e.getIndex());
