@@ -344,17 +344,31 @@ public final class Parser {
         //'SWITCH' expression ('CASE' expression ':' block)* 'DEFAULT' block 'END'
         try {
             match("SWITCH");
-            Ast.Expression expr = parseExpression();
+            Ast.Expression condition = parseExpression();
             List<Ast.Statement.Case> cases = new ArrayList<>();
-            while (peek("CASE")) {
-                cases.add(parseCaseStatement());
+
+            while (peek("CASE") || peek("DEFAULT")) {
+                Optional<Ast.Expression> caseExpr = Optional.empty();
+                if (match("CASE")) {
+                    caseExpr = Optional.of(parseExpression());
+                    if (!match(":")) {
+                        throw new ParseException("Expected ':' after case expression", tokens.get(-1).getIndex());
+                    }
+                } else if (match("DEFAULT")) {
+                    if (!match(":")) {
+                        throw new ParseException("Expected ':' after DEFAULT", tokens.get(-1).getIndex());
+                    }
+                }
+
+                List<Ast.Statement> caseStatements = parseBlock();
+                cases.add(new Ast.Statement.Case(caseExpr, caseStatements));
             }
-            List<Ast.Statement> def = new ArrayList<>();
-            if (match("DEFAULT")) {
-                def = parseBlock();
+
+            if (!match("END")) {
+                throw new ParseException("Expected 'END' after switch statement", tokens.get(-1).getIndex());
             }
-            match("END");
-            return new Ast.Statement.Switch(expr, cases);
+
+            return new Ast.Statement.Switch(condition, cases);
         }
         catch (ParseException e) {
             throw new ParseException("Error switch statement: " + e.getMessage(), tokens.get(-1).getIndex());
