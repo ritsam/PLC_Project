@@ -545,13 +545,19 @@ public final class Parser {
             str = str.replace("\\\"", "\"");
             str = str.substring(1, str.length() - 1);
             return new Ast.Expression.Literal(str);
-        } else if (match("(")) {
+        }
+        else if (match("(")) {
             Ast.Expression.Group expression = new Ast.Expression.Group(parseExpression());
+            if (match("]")) {
+                throw new ParseException("Invalid Closing Parenthesis", tokens.get(-1).getIndex());
+            }
             if (!match(")")) {
                 throw new ParseException("Missing )", tokens.get(-1).getIndex());
             }
+
             return expression;
         }
+
         else if (peek(Token.Type.IDENTIFIER)) {
             String id = tokens.get(0).getLiteral();
             match(Token.Type.IDENTIFIER);
